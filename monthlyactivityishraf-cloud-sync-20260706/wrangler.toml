@@ -1,0 +1,13 @@
+name = "mai2026"
+main = "worker.js"
+compatibility_date = "2026-07-06"
+
+[assets]
+directory = "."
+binding = "ASSETS"
+
+# Create a Cloudflare KV namespace and replace this id before deploying with Wrangler.
+# The binding name must stay ACTIVITY_STORE.
+[[kv_namespaces]]
+binding = "ACTIVITY_STORE"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
