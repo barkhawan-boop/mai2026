@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mai2026",
+  "compatibility_date": "2026-07-10",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "monthlyactivityishraf-cloud-sync-20260706"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
