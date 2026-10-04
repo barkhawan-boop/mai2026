@@ -388,6 +388,11 @@ input[type="number"] {
   flex-wrap: wrap;
 }
 
+.inspector-actions-bottom {
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
 .inspector-fields {
   grid-template-columns: minmax(220px, 1fr) 120px 170px;
   margin-bottom: 14px;
