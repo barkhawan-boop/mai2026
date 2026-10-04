@@ -1,7 +1,4 @@
 const STORAGE_KEY = "monthlyactivityishraf:v1";
-const CLOUD_SYNC_PATH = "/api/data";
-const CLOUD_SYNC_DELAY = 600;
-const CLOUD_REFRESH_INTERVAL = 10000;
 const TEMPLATE_PATH = "assets/template.xlsx";
 const MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const XML_NS = "http://www.w3.org/XML/1998/namespace";
@@ -120,9 +117,6 @@ const statFields = [
 let appData = loadData();
 let currentView = "summary";
 let currentInspectorId = appData.inspectors[0].id;
-let cloudSaveTimer = null;
-let cloudRefreshTimer = null;
-let lastCloudPayload = "";
 
 function defaultStats() {
   return {
@@ -215,81 +209,10 @@ function normalizeData(data) {
 function saveData() {
   persistActivityMonths();
   saveLocalData();
-  scheduleCloudSave();
 }
 
 function saveLocalData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-}
-
-function canUseCloudSync() {
-  return window.location.protocol === "https:" || window.location.protocol === "http:";
-}
-
-async function loadCloudData(options = {}) {
-  if (!canUseCloudSync()) return;
-  if (options.skipIfSavePending && cloudSaveTimer) return;
-  if (document.activeElement?.matches("input, textarea, select")) return;
-  try {
-    const response = await fetch(CLOUD_SYNC_PATH, { cache: "no-store" });
-    if (!response.ok) return;
-    const payload = await response.text();
-    if (!payload || payload === "null" || payload === lastCloudPayload || payload === JSON.stringify(appData)) return;
-    const cloudData = JSON.parse(payload);
-    if (!cloudData || !Array.isArray(cloudData.inspectors) || !cloudData.global) return;
-    appData = cloudData;
-    normalizeData(appData);
-    currentInspectorId = appData.inspectors.some((inspector) => inspector.id === currentInspectorId)
-      ? currentInspectorId
-      : appData.inspectors[0].id;
-    lastCloudPayload = payload;
-    saveLocalData();
-    render();
-  } catch (error) {
-    console.warn("Cloud data load failed", error);
-  }
-}
-
-function startCloudRefresh() {
-  if (!canUseCloudSync() || cloudRefreshTimer) return;
-  cloudRefreshTimer = setInterval(() => {
-    loadCloudData({ skipIfSavePending: true });
-  }, CLOUD_REFRESH_INTERVAL);
-}
-
-function scheduleCloudSave() {
-  if (!canUseCloudSync()) return;
-  clearTimeout(cloudSaveTimer);
-  cloudSaveTimer = setTimeout(() => {
-    syncDataToCloud();
-  }, CLOUD_SYNC_DELAY);
-}
-
-async function syncDataToCloud(payload = JSON.stringify(appData)) {
-  if (!canUseCloudSync()) return;
-  try {
-    const response = await fetch(CLOUD_SYNC_PATH, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: payload,
-    });
-    if (response.ok) lastCloudPayload = payload;
-  } catch (error) {
-    console.warn("Cloud data save failed", error);
-  }
-}
-
-function flushCloudSave() {
-  if (!canUseCloudSync()) return;
-  clearTimeout(cloudSaveTimer);
-  const payload = JSON.stringify(appData);
-  if (navigator.sendBeacon) {
-    const blob = new Blob([payload], { type: "application/json" });
-    navigator.sendBeacon(CLOUD_SYNC_PATH, blob);
-    lastCloudPayload = payload;
-    return;
-  }
-  syncDataToCloud(payload);
 }
 
 function normalizeTriple(value = {}) {
@@ -416,8 +339,6 @@ function regenerateActivities() {
 async function init() {
   bindEvents();
   render();
-  await loadCloudData();
-  startCloudRefresh();
 }
 
 function renderMonthOptions(select, selectedValue) {
@@ -457,7 +378,6 @@ function bindEvents() {
   window.addEventListener("beforeunload", () => {
     persistVisibleEdits();
     saveData();
-    flushCloudSave();
   });
 }
 
@@ -632,7 +552,7 @@ function saveCurrentInspector() {
   normalizeData(appData);
   saveData();
   render();
-  showToast("زانیارییەکانی ئەم سەرپەرشتیارە هەڵگیران.");
+  showToast("زانیارییەکانی ئەم سەرپەرشتیارە لەم ئامێرە و وێبگەڕە هەڵگیران.");
 }
 
 function saveMainPage() {
@@ -640,7 +560,7 @@ function saveMainPage() {
   normalizeData(appData);
   saveData();
   render();
-  showToast("زانیارییەکان هەڵگیران.");
+  showToast("زانیارییەکان لەم ئامێرە و وێبگەڕە هەڵگیران.");
 }
 
 function persistVisibleEdits() {
