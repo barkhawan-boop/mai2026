@@ -1,4 +1,6 @@
 const STORAGE_KEY = "monthlyactivityishraf:v1";
+const CLOUD_SYNC_PATH = "/api/data";
+const CLOUD_SESSION_KEY = "mai2026:cloud-session";
 const TEMPLATE_PATH = "assets/template.xlsx";
 const MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const XML_NS = "http://www.w3.org/XML/1998/namespace";
@@ -117,6 +119,7 @@ const statFields = [
 let appData = loadData();
 let currentView = "summary";
 let currentInspectorId = appData.inspectors[0].id;
+let cloudSyncReady = false;
 
 function defaultStats() {
   return {
@@ -213,6 +216,97 @@ function saveData() {
 
 function saveLocalData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+}
+
+function isAccessRedirect(response) {
+  return response.type === "opaqueredirect" || response.status === 0 || response.status === 401;
+}
+
+function setCloudSyncReady(ready) {
+  cloudSyncReady = ready;
+  if (ready) sessionStorage.setItem(CLOUD_SESSION_KEY, "1");
+  else sessionStorage.removeItem(CLOUD_SESSION_KEY);
+
+  const button = document.getElementById("cloudSyncButton");
+  if (button) button.textContent = ready ? "نوێکردنەوە لە هەور" : "هاوکاتکردنی داتا";
+}
+
+function startCloudLogin(intent = "load") {
+  setCloudSyncReady(false);
+  const safeIntent = intent === "save" ? "save" : "load";
+  sessionStorage.setItem("mai2026:cloud-intent", safeIntent);
+  window.location.assign(`${CLOUD_SYNC_PATH}?intent=${safeIntent}`);
+}
+
+async function loadCloudData(options = {}) {
+  try {
+    const response = await fetch(CLOUD_SYNC_PATH, { cache: "no-store", redirect: "manual" });
+    if (isAccessRedirect(response)) {
+      setCloudSyncReady(false);
+      return false;
+    }
+    if (!response.ok) return false;
+
+    setCloudSyncReady(true);
+    const payload = await response.text();
+    if (!payload || payload === "null") {
+      if (!options.quiet) showToast("هیچ پاشەکەوتێکی هەور نییە؛ داتاکەت هەڵبگرە بۆ بارکردنی.");
+      return true;
+    }
+
+    const cloudData = JSON.parse(payload);
+    if (!cloudData || !Array.isArray(cloudData.inspectors) || !cloudData.global) return false;
+    appData = cloudData;
+    normalizeData(appData);
+    currentInspectorId = appData.inspectors.some((inspector) => inspector.id === currentInspectorId)
+      ? currentInspectorId
+      : appData.inspectors[0]?.id ?? null;
+    saveLocalData();
+    render();
+    if (!options.quiet) showToast("داتاکان لەسەر هەور نوێکرانەوە.");
+    return true;
+  } catch (error) {
+    console.warn("Cloud data load failed", error);
+    return false;
+  }
+}
+
+async function saveCloudData() {
+  if (!cloudSyncReady) return "login";
+  try {
+    const response = await fetch(CLOUD_SYNC_PATH, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(appData),
+      redirect: "manual",
+    });
+    if (isAccessRedirect(response)) {
+      setCloudSyncReady(false);
+      return "login";
+    }
+    return response.ok;
+  } catch (error) {
+    console.warn("Cloud data save failed", error);
+    return false;
+  }
+}
+
+async function resumeCloudSession(intent) {
+  setCloudSyncReady(true);
+  if (intent === "save") {
+    const saved = await saveCloudData();
+    if (saved === "login") return startCloudLogin("save");
+    showToast(saved
+      ? "زانیارییەکان لەسەر هەور هەڵگیران."
+      : "لەم ئامێرەدا هەڵگیرا، بەڵام هەڵگرتنی هەوری سەرکەوتوو نەبوو.");
+    return;
+  }
+
+  const loaded = await loadCloudData();
+  if (!loaded) {
+    setCloudSyncReady(false);
+    showToast("پەیوەندی بە هەورەوە شکستی هێنا؛ دووبارە هەوڵ بدە.");
+  }
 }
 
 function normalizeTriple(value = {}) {
@@ -339,6 +433,20 @@ function regenerateActivities() {
 async function init() {
   bindEvents();
   render();
+
+  const cloudIntent = new URLSearchParams(window.location.search).get("cloud");
+  if (cloudIntent === "save" || cloudIntent === "load") {
+    window.history.replaceState({}, "", window.location.pathname);
+    sessionStorage.removeItem("mai2026:cloud-intent");
+    await resumeCloudSession(cloudIntent);
+  } else if (sessionStorage.getItem(CLOUD_SESSION_KEY) === "1") {
+    setCloudSyncReady(true);
+    const loaded = await loadCloudData({ quiet: true });
+    if (!loaded) setCloudSyncReady(false);
+  } else if (sessionStorage.getItem("mai2026:cloud-intent")) {
+    const intent = sessionStorage.getItem("mai2026:cloud-intent");
+    startCloudLogin(intent);
+  }
 }
 
 function renderMonthOptions(select, selectedValue) {
@@ -349,6 +457,11 @@ function renderMonthOptions(select, selectedValue) {
 }
 
 function bindEvents() {
+  document.getElementById("cloudSyncButton").addEventListener("click", async () => {
+    if (!cloudSyncReady) return startCloudLogin("load");
+    const loaded = await loadCloudData();
+    if (!loaded) startCloudLogin("load");
+  });
   document.getElementById("excelButton").addEventListener("click", generateWorkbook);
   document.getElementById("printButton").addEventListener("click", printAllSheets);
   document.getElementById("printSummaryButton").addEventListener("click", printSummarySheet);
@@ -545,22 +658,30 @@ function updateInspectorSettings(event = null) {
   if (event?.type !== "input") render();
 }
 
-function saveCurrentInspector() {
+async function saveCurrentInspector() {
   const inspector = getCurrentInspector();
   if (!inspector) return;
   readInspectorSettingsFromFields(inspector);
   normalizeData(appData);
   saveData();
   render();
-  showToast("زانیارییەکانی ئەم سەرپەرشتیارە لەم ئامێرە و وێبگەڕە هەڵگیران.");
+  const saved = await saveCloudData();
+  if (saved === "login") return startCloudLogin("save");
+  showToast(saved
+    ? "زانیارییەکان لەم ئامێرە و لەسەر هەور هەڵگیران."
+    : "لەم ئامێرەدا هەڵگیرا، بەڵام پاشەکەوتی هەور سەرکەوتوو نەبوو.");
 }
 
-function saveMainPage() {
+async function saveMainPage() {
   persistVisibleEdits();
   normalizeData(appData);
   saveData();
   render();
-  showToast("زانیارییەکان لەم ئامێرە و وێبگەڕە هەڵگیران.");
+  const saved = await saveCloudData();
+  if (saved === "login") return startCloudLogin("save");
+  showToast(saved
+    ? "زانیارییەکان لەم ئامێرە و لەسەر هەور هەڵگیران."
+    : "لەم ئامێرەدا هەڵگیرا، بەڵام پاشەکەوتی هەور سەرکەوتوو نەبوو.");
 }
 
 function persistVisibleEdits() {

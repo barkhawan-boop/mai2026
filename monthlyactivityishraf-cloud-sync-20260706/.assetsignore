@@ -4,3 +4,4 @@ wrangler.toml
 README.md
 .assetsignore
 .wrangler/
+schema.sql

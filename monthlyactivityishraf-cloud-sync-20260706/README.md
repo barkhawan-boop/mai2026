@@ -1,7 +1,11 @@
 # Monthly activity app
 
-The app is public and saves changes in the current browser's local storage. Pressing Save overwrites the saved copy for this browser profile. Data is not uploaded or shared between devices. Separate browser profiles keep separate copies.
+The app is public. Local edits remain saved in the current browser, and pressing Save also replaces that signed-in user's private Cloudflare D1 record. Use **Sync data** on another device to sign in with the same email and load that copy.
+
+The `/api/*` routes are protected by Cloudflare Access with email one-time PIN authentication. The Worker validates the Access JWT, hashes the verified email to choose a D1 row, and never accepts anonymous reads or writes. A first Save signs in and then uploads the current device's data; Sync data downloads the server copy when one exists.
 
 ## Deploy
 
-The static app is served by a Cloudflare Worker with Static Assets. Deploy it with `wrangler deploy`. The app does not use a server-side database or account sign-in.
+The D1 database, table, and Access application are provisioned in Cloudflare. Access protects only `mai2026.barkhawan.workers.dev/api/*`; the app page remains public. The Access app uses Cloudflare's default email one-time PIN and scopes its JWT cookie to the API path.
+
+Deploy updates from this folder with `wrangler deploy`.

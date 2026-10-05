@@ -8,8 +8,17 @@ directory = "."
 binding = "ASSETS"
 run_worker_first = ["/api/*"]
 
+[vars]
+ACCESS_TEAM_DOMAIN = "https://calm-boat-a49c.cloudflareaccess.com"
+ACCESS_AUD = "1a609a65c97e74c2485641b90bd6ce98d322048964c7794025ac82a895bb2b93"
+
 [observability]
 enabled = true
 
 [observability.traces]
 enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mai2026-user-data"
+database_id = "950b2ace-23be-4124-a9c4-f0ae74fa3631"
