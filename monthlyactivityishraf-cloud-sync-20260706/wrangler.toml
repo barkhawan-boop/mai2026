@@ -1,5 +1,6 @@
 name = "mai2026"
 main = "worker.js"
+account_id = "a834d73c0d9e7a4e55b5aa08e7b48317"
 compatibility_date = "2026-10-04"
 workers_dev = true
 
