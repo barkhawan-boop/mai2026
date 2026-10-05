@@ -118,7 +118,12 @@ const statFields = [
 let appData = loadData();
 let currentView = "summary";
 let currentInspectorId = appData.inspectors[0].id;
-let cloudSyncReady = false;
+let cloudDirty = false;
+let cloudHasRecord = false;
+let cloudReadSucceeded = false;
+let lastCloudPayload = null;
+let cloudSyncInProgress = false;
+const CLOUD_SYNC_INTERVAL_MS = 5000;
 
 function defaultStats() {
   return {
@@ -211,30 +216,29 @@ function normalizeData(data) {
 function saveData() {
   persistActivityMonths();
   saveLocalData();
+  cloudDirty = true;
 }
 
 function saveLocalData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
 }
 
-function setCloudSyncReady(ready) {
-  cloudSyncReady = ready;
-  const button = document.getElementById("cloudSyncButton");
-  if (button) button.textContent = ready ? "نوێکردنەوەی داتای هاوبەش" : "هاوکاتکردنی داتا";
-}
-
 async function loadCloudData(options = {}) {
   try {
     const response = await fetch(CLOUD_SYNC_PATH, { cache: "no-store", redirect: "manual" });
     if (!response.ok) return false;
+    cloudReadSucceeded = true;
 
-    setCloudSyncReady(true);
     const payload = await response.text();
+    if (cloudDirty) return true;
     if (!payload || payload === "null") {
+      cloudHasRecord = false;
+      lastCloudPayload = null;
       if (!options.quiet) showToast("هیچ پاشەکەوتێکی هەور نییە؛ داتاکەت هەڵبگرە بۆ بارکردنی.");
       return true;
     }
 
+    if (payload === lastCloudPayload) return true;
     const cloudData = JSON.parse(payload);
     if (!cloudData || !Array.isArray(cloudData.inspectors) || !cloudData.global) return false;
     appData = cloudData;
@@ -243,8 +247,11 @@ async function loadCloudData(options = {}) {
       ? currentInspectorId
       : appData.inspectors[0]?.id ?? null;
     saveLocalData();
+    cloudDirty = false;
+    cloudHasRecord = true;
+    lastCloudPayload = payload;
     render();
-    if (!options.quiet) showToast("داتاکان لەسەر هەور نوێکرانەوە.");
+    if (!options.quiet) showToast("داتاکان لەسەر هەوری هاوبەش نوێکرانەوە.");
     return true;
   } catch (error) {
     console.warn("Cloud data load failed", error);
@@ -253,13 +260,19 @@ async function loadCloudData(options = {}) {
 }
 
 async function saveCloudData() {
+  const snapshot = JSON.stringify(appData);
   try {
     const response = await fetch(CLOUD_SYNC_PATH, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(appData),
+      body: snapshot,
       redirect: "manual",
     });
+    if (response.ok) {
+      lastCloudPayload = snapshot;
+      cloudHasRecord = true;
+      if (snapshot === JSON.stringify(appData)) cloudDirty = false;
+    }
     return response.ok;
   } catch (error) {
     console.warn("Cloud data save failed", error);
@@ -267,10 +280,25 @@ async function saveCloudData() {
   }
 }
 
+async function syncCloudData() {
+  if (cloudSyncInProgress) return;
+  cloudSyncInProgress = true;
+  try {
+    if (cloudDirty) {
+      const saved = await saveCloudData();
+      if (!saved) console.warn("Automatic cloud save failed; it will retry.");
+      return;
+    }
+    await loadCloudData({ quiet: true });
+  } finally {
+    cloudSyncInProgress = false;
+  }
+}
+
 async function resumeCloudSession(intent) {
-  setCloudSyncReady(true);
   if (intent === "save") {
     const saved = await saveCloudData();
+    if (!saved) cloudDirty = true;
     showToast(saved
       ? "زانیارییەکان لەسەر هەوری هاوبەش هەڵگیران."
       : "لەم ئامێرەدا هەڵگیرا، بەڵام هەڵگرتنی هەوری سەرکەوتوو نەبوو.");
@@ -279,7 +307,6 @@ async function resumeCloudSession(intent) {
 
   const loaded = await loadCloudData();
   if (!loaded) {
-    setCloudSyncReady(false);
     showToast("پەیوەندی بە هەورەوە شکستی هێنا؛ دووبارە هەوڵ بدە.");
   }
 }
@@ -408,7 +435,7 @@ function regenerateActivities() {
 async function init() {
   bindEvents();
   render();
-  setCloudSyncReady(true);
+  const hadLocalData = Boolean(localStorage.getItem(STORAGE_KEY));
   const cloudIntent = new URLSearchParams(window.location.search).get("cloud");
   if (cloudIntent === "save" || cloudIntent === "load") {
     window.history.replaceState({}, "", window.location.pathname);
@@ -416,6 +443,8 @@ async function init() {
   } else {
     await loadCloudData({ quiet: true });
   }
+  if (cloudReadSucceeded && !cloudHasRecord && hadLocalData) cloudDirty = true;
+  window.setInterval(syncCloudData, CLOUD_SYNC_INTERVAL_MS);
 }
 
 function renderMonthOptions(select, selectedValue) {
@@ -426,10 +455,6 @@ function renderMonthOptions(select, selectedValue) {
 }
 
 function bindEvents() {
-  document.getElementById("cloudSyncButton").addEventListener("click", async () => {
-    const loaded = await loadCloudData();
-    if (!loaded) showToast("پەیوەندی بە هەوری هاوبەش سەرکەوتوو نەبوو؛ دووبارە هەوڵ بدە.");
-  });
   document.getElementById("excelButton").addEventListener("click", generateWorkbook);
   document.getElementById("printButton").addEventListener("click", printAllSheets);
   document.getElementById("printSummaryButton").addEventListener("click", printSummarySheet);
