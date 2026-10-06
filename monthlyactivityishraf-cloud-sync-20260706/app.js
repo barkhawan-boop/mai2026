@@ -535,7 +535,7 @@ function renderTabs() {
       return `<button type="button" class="tab${active}" data-view="inspector" data-id="${inspector.id}">${escapeHtml(inspector.name.trim())}</button>`;
     })
     .join("");
-  tabs.innerHTML = `${inspectorTabs}<button type="button" class="tab${summaryActive}" data-view="summary">سەرەکی</button>`;
+  tabs.innerHTML = `<button type="button" class="tab${summaryActive}" data-view="summary">سەرەکی</button>${inspectorTabs}`;
   tabs.querySelectorAll(".tab").forEach((button) => {
     button.addEventListener("click", () => {
       currentView = button.dataset.view;
