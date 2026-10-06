@@ -1,4 +1,5 @@
 const STORAGE_KEY = "monthlyactivityishraf:v1";
+const LAST_TAB_KEY = "monthlyactivityishraf:last-tab:v1";
 const CLOUD_SYNC_PATH = "/api/data";
 const TEMPLATE_PATH = "assets/template.xlsx";
 const MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
@@ -116,8 +117,9 @@ const statFields = [
 ];
 
 let appData = loadData();
-let currentView = "summary";
-let currentInspectorId = appData.inspectors[0].id;
+const lastVisitedTab = loadLastVisitedTab();
+let currentView = lastVisitedTab.view;
+let currentInspectorId = lastVisitedTab.inspectorId;
 let cloudDirty = false;
 let cloudHasRecord = false;
 let cloudReadSucceeded = false;
@@ -174,6 +176,25 @@ function loadData() {
   }
   normalizeData(data);
   return data;
+}
+
+function loadLastVisitedTab() {
+  const saved = safeJsonParse(localStorage.getItem(LAST_TAB_KEY) || "");
+  const firstInspectorId = appData.inspectors[0]?.id ?? null;
+  if (saved?.view === "summary") return { view: "summary", inspectorId: firstInspectorId };
+
+  const inspectorId = Number(saved?.inspectorId);
+  if (saved?.view === "inspector" && appData.inspectors.some((inspector) => inspector.id === inspectorId)) {
+    return { view: "inspector", inspectorId };
+  }
+  return { view: "summary", inspectorId: firstInspectorId };
+}
+
+function saveLastVisitedTab() {
+  localStorage.setItem(LAST_TAB_KEY, JSON.stringify({
+    view: currentView,
+    inspectorId: currentView === "inspector" ? currentInspectorId : null,
+  }));
 }
 
 function safeJsonParse(text) {
@@ -488,6 +509,11 @@ function bindEvents() {
 }
 
 function render() {
+  if (currentView === "inspector" && !appData.inspectors.some((inspector) => inspector.id === currentInspectorId)) {
+    currentView = "summary";
+    currentInspectorId = appData.inspectors[0]?.id ?? null;
+  }
+  saveLastVisitedTab();
   renderTabs();
   if (currentView === "summary") {
     document.getElementById("summaryPanel").hidden = false;
