@@ -751,7 +751,7 @@ textarea::placeholder {
 
   @page summary {
     size: A4 landscape;
-    margin: 6mm;
+    margin: 0;
   }
 
   * {
@@ -784,10 +784,12 @@ textarea::placeholder {
   .print-page {
     page-break-after: always;
     break-after: page;
-    width: 196mm;
+    width: 198mm;
     min-height: 0;
-    margin: 0 auto;
-    padding: 0 1mm;
+    margin-left: auto;
+    margin-right: 0;
+    padding: 0;
+    box-sizing: border-box;
     overflow: hidden;
     background: #fff;
     font-family: "Sarchia-Baran", "Noto Naskh Arabic", Tahoma, Arial, sans-serif;
@@ -800,7 +802,7 @@ textarea::placeholder {
 
   .summary-print-page {
     page: summary;
-    width: 285mm;
+    width: 297mm;
     min-height: 0;
     padding: 0;
     margin-left: auto;
@@ -811,9 +813,10 @@ textarea::placeholder {
   .summary-print-page .excel-summary {
     width: 100%;
     max-width: 100%;
-    margin-left: auto;
+    margin-left: 0;
     margin-right: 0;
     table-layout: fixed;
+    direction: rtl;
   }
 
   .summary-print-page:last-child {
@@ -865,6 +868,9 @@ textarea::placeholder {
     position: relative;
     direction: ltr;
     width: 100%;
+    margin-left: auto;
+    margin-right: 0;
+    box-sizing: border-box;
   }
 
   .daily-print-frame::after {
