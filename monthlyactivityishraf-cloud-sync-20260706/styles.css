@@ -1033,22 +1033,22 @@ textarea::placeholder {
 
   .excel-summary .vertical {
     height: 54mm;
-    padding: 0.5mm 0.25mm;
+    padding: 0;
     vertical-align: middle;
+    text-align: center;
   }
 
   .excel-summary .vertical span {
-    display: block;
-    width: 100%;
+    display: inline-block;
+    width: max-content;
     direction: rtl;
     unicode-bidi: plaintext;
     writing-mode: horizontal-tb;
-    transform: none;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: normal;
+    transform: rotate(-90deg);
+    transform-origin: center;
+    white-space: nowrap;
     text-align: center;
-    line-height: 1.1;
+    line-height: 1;
   }
 
   .excel-summary .total td {
