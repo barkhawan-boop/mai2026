@@ -673,7 +673,7 @@ async function initBossPortal() {
   boss.className = "boss-portal";
   boss.innerHTML = `
     <header class="boss-header">
-      <div><h1>سەرپەرشتیاری چاڵاکی مانگانە</h1><p>ڕاپۆرتە نێردراوەکان ئامادەن بۆ چاپکردن.</p></div>
+      <div><h1>کاری مانگانەی سەرپەرشتیاران</h1><p>ڕاپۆرتە نێردراوەکان ئامادەن بۆ چاپکردن.</p></div>
       <div class="boss-actions">
         <label>ساڵ <input id="bossYear" type="number" min="2000" max="2100" value="${escapeHtml(period.activityYear)}"></label>
         <label>مانگ <select id="bossMonth"></select></label>
