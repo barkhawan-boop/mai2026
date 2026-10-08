@@ -680,6 +680,7 @@ async function initBossPortal() {
         <button class="button ghost" id="bossRefresh" type="button">نوێکردنەوە</button>
         <button class="button print" id="bossPrintAll" type="button" disabled>چاپکردنی هەموو نێردراوەکان</button>
         <button class="button print" id="bossPrintSummary" type="button" disabled>چاپکردنی پوختە</button>
+        <button class="button primary" id="bossExcelExport" type="button">دابەزاندنی Excel</button>
       </div>
     </header>
     <section class="boss-list-panel"><div class="boss-list-heading"><h2>سەرپەرشتیاران</h2><span id="bossPeriod"></span></div><div id="bossInspectorList" class="boss-inspector-list" aria-live="polite"></div></section>`;
@@ -691,6 +692,7 @@ async function initBossPortal() {
   monthSelect.addEventListener("change", refreshBossPortal);
   boss.querySelector("#bossPrintAll").addEventListener("click", () => printBossReports());
   boss.querySelector("#bossPrintSummary").addEventListener("click", printBossSummary);
+  boss.querySelector("#bossExcelExport").addEventListener("click", exportBossWorkbook);
   await refreshBossPortal();
   window.setInterval(() => {
     const now = new Date();
@@ -780,6 +782,29 @@ async function printBossSummary() {
     console.error("Boss summary print failed", error);
     const list = document.getElementById("bossInspectorList");
     if (list) list.insertAdjacentHTML("afterbegin", `<p class="boss-message error">چاپی پوختە سەرکەوتوو نەبوو؛ دووبارە هەوڵ بدە.</p>`);
+  }
+}
+
+async function exportBossWorkbook() {
+  try {
+    const { year, month } = getBossPeriod();
+    const data = await loadBossData();
+    data.inspectors.forEach((inspector) => {
+      inspector.settings = normalizeSettings({
+        ...getInspectorSettings(inspector),
+        activityYear: String(year),
+        month,
+      }, data.global);
+      loadInspectorActivitiesForSettings(inspector, inspector.settings);
+    });
+    data.global.activityYear = String(year);
+    data.global.month = month;
+    appData = data;
+    await generateWorkbook({ persist: false });
+  } catch (error) {
+    console.error("Boss Excel export failed", error);
+    const list = document.getElementById("bossInspectorList");
+    if (list) list.insertAdjacentHTML("afterbegin", `<p class="boss-message error">دروستکردنی فایلی Excel سەرکەوتوو نەبوو؛ دووبارە هەوڵ بدە.</p>`);
   }
 }
 
@@ -1323,11 +1348,12 @@ function buildSummaryPrintPage() {
   const totals = calculateTotals();
   const settings = getSummarySettings();
   const summaryColumns = [
-    "2.45%", "10.95%", "8.77%",
-    "1.64%", "2.38%", "2.03%", "2.38%", "2.03%", "2.38%", "2.03%",
-    "2.38%", "2.03%", "2.38%", "2.03%", "2.38%", "2.38%", "2.38%",
-    "3.24%", "1.91%", "2.38%", "1.91%", "2.38%", "1.91%", "2.38%",
-    "1.91%", "2.38%", "1.91%", "2.38%", "1.72%", "1.91%",
+    "3.2%", "11.6%", "6.1%",
+    "2.7%", "3.3%", "3.3%", "3.0%",
+    "2.7%", "3.3%", "3.3%", "3.0%",
+    "2.7%", "3.3%", "3.3%", "3.3%", "3.0%",
+    "3.4%", "3.4%", "3.4%", "3.4%", "3.4%", "3.4%", "3.4%", "3.4%",
+    "3.4%", "3.4%", "3.4%", "3.4%", "3.4%", "3.4%",
   ];
   const inspectorRows = appData.inspectors
     .map((inspector, index) => buildSummaryPrintRow(index + 1, inspector))
@@ -1496,13 +1522,13 @@ function optionalPrintNumber(value) {
   return Number.isFinite(number) && number !== 0 ? escapeHtml(number) : "";
 }
 
-async function generateWorkbook() {
+async function generateWorkbook(options = {}) {
   if (!window.JSZip) {
     showToast("JSZip بارنەبووە. پەیوەندی ئینتەرنێت پێویستە.");
     return;
   }
   normalizeData(appData);
-  saveData();
+  if (options.persist !== false) saveData();
   showToast("Excel دروست دەکرێت...");
   try {
     const summarySettings = getSummarySettings();
