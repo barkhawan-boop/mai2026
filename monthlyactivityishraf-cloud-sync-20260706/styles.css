@@ -822,9 +822,9 @@ textarea::placeholder {
   .summary-print-page .excel-summary td,
   .summary-print-page .excel-summary th {
     box-sizing: border-box;
-    padding: 0.2mm 0.15mm;
-    font-size: 13px;
-    line-height: 1;
+    padding: 0.1mm 0.08mm;
+    font-size: 11px;
+    line-height: 0.95;
   }
 
   .summary-print-page:last-child {
@@ -1038,8 +1038,9 @@ textarea::placeholder {
   }
 
   .excel-summary .vertical {
-    height: 30mm;
+    height: 72mm;
     padding: 0;
+    white-space: normal;
   }
 
   .excel-summary .vertical span {
@@ -1047,7 +1048,7 @@ textarea::placeholder {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
     white-space: nowrap;
-    line-height: 1;
+    line-height: 1.05;
   }
 
   .excel-summary .total td {
@@ -1061,6 +1062,11 @@ textarea::placeholder {
     height: 8mm;
     font-size: 13px;
   }
+
+  .print-root .excel-sheet,
+  .print-root .excel-sheet th,
+  .print-root .excel-sheet td,
+  .print-root .excel-sheet span { font-size: 11px !important; }
 
   body.boss-mode > :not(#printRoot) { display: none !important; }
 }

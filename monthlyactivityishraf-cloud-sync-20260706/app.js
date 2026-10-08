@@ -1323,12 +1323,11 @@ function buildSummaryPrintPage() {
   const totals = calculateTotals();
   const settings = getSummarySettings();
   const summaryColumns = [
-    "3.2%", "11.6%", "6.1%",
-    "2.7%", "3.3%", "3.3%", "3.0%",
-    "2.7%", "3.3%", "3.3%", "3.0%",
-    "2.7%", "3.3%", "3.3%", "3.3%", "3.0%",
-    "3.4%", "3.4%", "3.4%", "3.4%", "3.4%", "3.4%", "3.4%", "3.4%",
-    "3.4%", "3.4%", "3.4%", "3.4%", "3.4%", "3.4%",
+    "2.45%", "10.95%", "8.77%",
+    "1.64%", "2.38%", "2.03%", "2.38%", "2.03%", "2.38%", "2.03%",
+    "2.38%", "2.03%", "2.38%", "2.03%", "2.38%", "2.38%", "2.38%",
+    "3.24%", "1.91%", "2.38%", "1.91%", "2.38%", "1.91%", "2.38%",
+    "1.91%", "2.38%", "1.91%", "2.38%", "1.72%", "1.91%",
   ];
   const inspectorRows = appData.inspectors
     .map((inspector, index) => buildSummaryPrintRow(index + 1, inspector))
@@ -1336,7 +1335,7 @@ function buildSummaryPrintPage() {
   const totalRow = buildSummaryTotalRow(totals);
 
   return `<section class="print-page summary-print-page">
-    <table class="excel-sheet excel-summary">
+    <table class="excel-sheet excel-summary" dir="rtl">
       <colgroup>${summaryColumns.map((width) => `<col style="width: ${width}">`).join("")}</colgroup>
       <tbody>
         <tr class="title-row"><td colspan="30" class="rtl">یەكەی دڵنیایی جۆری سەرپەرشتیكردنی پەروەردەیی ناوەندی هەولێر</td></tr>
