@@ -796,7 +796,7 @@ textarea::placeholder {
     page-break-inside: avoid;
     break-inside: avoid-page;
     width: 100%;
-    min-height: 258.9mm;
+    min-height: 0;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -813,7 +813,7 @@ textarea::placeholder {
   .summary-print-page {
     page: summary;
     width: 100%;
-    min-height: 186.9mm;
+    min-height: 0;
     padding: 0;
     margin: 0 auto;
     box-sizing: border-box;
