@@ -746,12 +746,12 @@ textarea::placeholder {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 6mm;
+    margin: 0;
   }
 
   @page summary {
     size: A4 landscape;
-    margin: 6mm;
+    margin: 0;
   }
 
   * {
@@ -789,8 +789,8 @@ textarea::placeholder {
     break-after: page;
     page-break-inside: avoid;
     break-inside: avoid-page;
-    width: 198mm;
-    min-height: 285mm;
+    width: 210mm;
+    min-height: 297mm;
     margin: 0 auto;
     padding: 0;
     box-sizing: border-box;
@@ -806,8 +806,8 @@ textarea::placeholder {
 
   .summary-print-page {
     page: summary;
-    width: 285mm;
-    min-height: 198mm;
+    width: 297mm;
+    min-height: 210mm;
     padding: 0;
     margin: 0 auto;
     box-sizing: border-box;
