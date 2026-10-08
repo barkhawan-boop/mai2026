@@ -1063,6 +1063,17 @@ textarea::placeholder {
   .print-root .excel-sheet span { font-size: 10px !important; }
 
   body.boss-mode > :not(#printRoot) { display: none !important; }
+
+  body.boss-mode {
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.boss-mode #printRoot {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 body.boss-mode { min-height: 100vh; padding: 28px; color: #000; background: linear-gradient(135deg, #e9f1fb, #f7f9fc 52%, #fbf7e9); }
