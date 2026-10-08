@@ -803,6 +803,17 @@ textarea::placeholder {
     width: 285mm;
     min-height: 0;
     padding: 0;
+    margin-left: auto;
+    margin-right: 0;
+    box-sizing: border-box;
+  }
+
+  .summary-print-page .excel-summary {
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: 0;
+    table-layout: fixed;
   }
 
   .summary-print-page:last-child {
