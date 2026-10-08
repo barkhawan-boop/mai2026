@@ -746,17 +746,17 @@ textarea::placeholder {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 3mm;
+    margin: 2mm;
   }
 
   @page daily {
-    size: A4 landscape;
-    margin: 3mm;
+    size: A4 portrait;
+    margin: 2mm;
   }
 
   @page summary {
     size: A4 landscape;
-    margin: 3mm;
+    margin: 2mm;
   }
 
   * {
@@ -789,7 +789,7 @@ textarea::placeholder {
     page: daily;
     page-break-after: always;
     break-after: page;
-    width: 291mm;
+    width: 206mm;
     min-height: 0;
     margin: 0 auto;
     padding: 0;
@@ -805,7 +805,7 @@ textarea::placeholder {
 
   .summary-print-page {
     page: summary;
-    width: 291mm;
+    width: 293mm;
     min-height: 0;
     padding: 0;
   }
@@ -859,7 +859,7 @@ textarea::placeholder {
     position: relative;
     direction: ltr;
     width: 100%;
-    height: 204mm;
+    height: 293mm;
   }
 
   .daily-print-frame::after {
@@ -907,8 +907,8 @@ textarea::placeholder {
   .excel-daily {
     position: relative;
     z-index: 1;
-    height: 204mm;
-    font-size: 14px;
+    height: 293mm;
+    font-size: 13px;
     background-image:
       linear-gradient(#000, #000),
       linear-gradient(#000, #000),
@@ -923,14 +923,14 @@ textarea::placeholder {
   .excel-daily th {
     height: auto;
     padding: 0.3mm 0.65mm;
-    font-size: 14px;
-    line-height: 1.02;
+    font-size: 13px;
+    line-height: 1;
   }
 
   .excel-daily .top-title td {
-    height: 4mm;
+    height: 3.5mm;
     background: #fff;
-    font-size: 14px;
+    font-size: 13px;
     text-align: right;
   }
 
@@ -943,7 +943,7 @@ textarea::placeholder {
   .excel-daily .top-title .study-year-value {
     direction: ltr;
     unicode-bidi: isolate;
-    font-size: 14px;
+    font-size: 13px;
     letter-spacing: 0;
     padding-inline: 0.2mm;
   }
@@ -954,34 +954,34 @@ textarea::placeholder {
   }
 
   .excel-daily .activity-text {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .excel-daily .group-header td {
-    height: 6mm;
-    font-size: 14px;
+    height: 5mm;
+    font-size: 13px;
   }
 
   .excel-daily .sub-header td {
-    height: 10mm;
-    font-size: 14px;
+    height: 8mm;
+    font-size: 13px;
   }
 
   .excel-daily .value-row td {
-    height: 4mm;
-    font-size: 14px;
+    height: 3.5mm;
+    font-size: 13px;
   }
 
   .excel-daily .stat-row td {
-    height: 7mm;
-    font-size: 14px;
+    height: 6mm;
+    font-size: 13px;
   }
 
   .excel-daily .signature td {
-    height: 4mm;
+    height: 3.5mm;
     border: 0;
     background: #fff;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .excel-daily .signature .stamp {
@@ -1000,7 +1000,7 @@ textarea::placeholder {
   }
 
   .excel-summary {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .excel-summary td,
@@ -1008,12 +1008,12 @@ textarea::placeholder {
     padding: 0.3mm 0.25mm;
     height: 4.6mm;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .excel-summary .title-row td {
-    height: 4mm;
-    font-size: 14px;
+    height: 3.5mm;
+    font-size: 13px;
   }
 
   .excel-summary .header-row td {
@@ -1042,7 +1042,7 @@ textarea::placeholder {
     border: 0;
     background: #fff;
     height: 8mm;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   body.boss-mode > :not(#printRoot) { display: none !important; }
