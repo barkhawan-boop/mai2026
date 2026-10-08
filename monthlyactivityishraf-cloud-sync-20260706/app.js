@@ -1,6 +1,7 @@
 const STORAGE_KEY = "monthlyactivityishraf:v1";
 const LAST_TAB_KEY = "monthlyactivityishraf:last-tab:v1";
 const CLOUD_SYNC_PATH = "/api/data";
+const REPORT_STATUS_PATH = "/api/report-status";
 const TEMPLATE_PATH = "assets/template.xlsx";
 const MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const XML_NS = "http://www.w3.org/XML/1998/namespace";
@@ -126,6 +127,7 @@ let cloudReadSucceeded = false;
 let lastCloudPayload = null;
 let cloudSyncInProgress = false;
 const CLOUD_SYNC_INTERVAL_MS = 5000;
+const reportStatuses = new Map();
 
 function defaultStats() {
   return {
@@ -454,6 +456,10 @@ function regenerateActivities() {
 }
 
 async function init() {
+  if (window.location.pathname.replace(/\/$/, "") === "/boss") {
+    await initBossPortal();
+    return;
+  }
   bindEvents();
   render();
   const hadLocalData = Boolean(localStorage.getItem(STORAGE_KEY));
@@ -465,7 +471,9 @@ async function init() {
     await loadCloudData({ quiet: true });
   }
   if (cloudReadSucceeded && !cloudHasRecord && hadLocalData) cloudDirty = true;
+  await refreshInspectorReportStatus();
   window.setInterval(syncCloudData, CLOUD_SYNC_INTERVAL_MS);
+  window.setInterval(refreshInspectorReportStatus, CLOUD_SYNC_INTERVAL_MS);
 }
 
 function renderMonthOptions(select, selectedValue) {
@@ -490,6 +498,7 @@ function bindEvents() {
   document.getElementById("inspectorMonthInput").addEventListener("change", updateInspectorSettings);
   document.getElementById("inspectorSaveButton").addEventListener("click", saveCurrentInspector);
   document.getElementById("inspectorPrintButton").addEventListener("click", printCurrentInspector);
+  document.getElementById("inspectorSendButton").addEventListener("click", sendCurrentReport);
   document.getElementById("inspectorNameInput").addEventListener("input", () => updateInspectorBasics(false));
   document.getElementById("inspectorNameInput").addEventListener("change", () => updateInspectorBasics(true));
   document.getElementById("inspectorSeriesInput").addEventListener("input", () => updateInspectorBasics(false));
@@ -571,6 +580,7 @@ function renderInspector() {
   }
   const settings = getInspectorSettings(inspector);
   document.getElementById("inspectorTitle").textContent = inspector.name;
+  renderInspectorSendButton(inspector);
   document.getElementById("inspectorMeta").textContent = `مانگی ${settings.month} / ${settings.studyYear}`;
   document.getElementById("inspectorStudyYearInput").value = settings.studyYear;
   document.getElementById("inspectorActivityYearInput").value = settings.activityYear;
@@ -581,6 +591,197 @@ function renderInspector() {
   renderSchoolCounts(inspector);
   renderStatCounts(inspector);
   renderActivities(inspector);
+}
+
+function reportStatusKey(inspectorId, year, month) {
+  return `${Number(inspectorId)}:${Number(year)}:${Number(month)}`;
+}
+
+function isReportSent(inspectorId, year, month) {
+  return reportStatuses.has(reportStatusKey(inspectorId, year, month));
+}
+
+function renderInspectorSendButton(inspector) {
+  const button = document.getElementById("inspectorSendButton");
+  if (!button) return;
+  const settings = getInspectorSettings(inspector);
+  const sent = isReportSent(inspector.id, settings.activityYear, settings.month);
+  button.classList.toggle("sent", sent);
+  button.textContent = sent ? "نێردرا" : "ناردن";
+  button.setAttribute("aria-label", sent ? "نێردرا" : "ناردنی ڕاپۆرت بۆ سەرپەرشتیار");
+}
+
+async function fetchReportStatuses(year, month) {
+  const response = await fetch(`${REPORT_STATUS_PATH}?year=${encodeURIComponent(year)}&month=${encodeURIComponent(month)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Could not load report statuses");
+  const data = await response.json();
+  return Array.isArray(data.reports) ? data.reports : [];
+}
+
+async function refreshInspectorReportStatus() {
+  const inspector = getCurrentInspector();
+  if (!inspector) return;
+  const settings = getInspectorSettings(inspector);
+  try {
+    const reports = await fetchReportStatuses(settings.activityYear, settings.month);
+    for (const [key, value] of reportStatuses) {
+      if (key.endsWith(`:${Number(settings.activityYear)}:${Number(settings.month)}`)) reportStatuses.delete(key);
+    }
+    reports.forEach((report) => reportStatuses.set(
+      reportStatusKey(report.inspectorId, settings.activityYear, settings.month), report.sentAt,
+    ));
+    renderInspectorSendButton(inspector);
+  } catch (error) {
+    console.warn("Report status refresh failed", error);
+  }
+}
+
+async function sendCurrentReport() {
+  const inspector = getCurrentInspector();
+  if (!inspector) return;
+  persistVisibleEdits();
+  readInspectorSettingsFromFields(inspector);
+  normalizeData(appData);
+  saveData();
+  const saved = await saveCloudData();
+  if (!saved) {
+    showToast("سەرەتا پاشەکەوتی هەوری سەرکەوتوو نەبوو؛ ناردن ئەنجام نەدرا.");
+    return;
+  }
+  const settings = getInspectorSettings(inspector);
+  try {
+    const response = await fetch(`${REPORT_STATUS_PATH}/send`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ inspectorId: inspector.id, year: settings.activityYear, month: settings.month }),
+    });
+    if (!response.ok) throw new Error("Could not send report");
+    await refreshInspectorReportStatus();
+    showToast("ڕاپۆرتەکە نێردرا بۆ چاپکردن.");
+  } catch (error) {
+    console.error("Report send failed", error);
+    showToast("ناردنی ڕاپۆرت سەرکەوتوو نەبوو؛ دووبارە هەوڵ بدە.");
+  }
+}
+
+async function initBossPortal() {
+  document.body.classList.add("boss-mode");
+  const period = normalizeSettings(appData.global);
+  const boss = document.createElement("main");
+  boss.id = "bossPortal";
+  boss.className = "boss-portal";
+  boss.innerHTML = `
+    <header class="boss-header">
+      <div><h1>سەرپەرشتیاری چاڵاکی مانگانە</h1><p>ڕاپۆرتە نێردراوەکان ئامادەن بۆ چاپکردن.</p></div>
+      <div class="boss-actions">
+        <label>ساڵ <input id="bossYear" type="number" min="2000" max="2100" value="${escapeHtml(period.activityYear)}"></label>
+        <label>مانگ <select id="bossMonth"></select></label>
+        <button class="button ghost" id="bossRefresh" type="button">نوێکردنەوە</button>
+        <button class="button print" id="bossPrintAll" type="button" disabled>چاپکردنی هەموو نێردراوەکان</button>
+      </div>
+    </header>
+    <section class="boss-list-panel"><div class="boss-list-heading"><h2>سەرپەرشتیاران</h2><span id="bossPeriod"></span></div><div id="bossInspectorList" class="boss-inspector-list" aria-live="polite"></div></section>`;
+  document.body.insertBefore(boss, document.body.firstChild);
+  const monthSelect = boss.querySelector("#bossMonth");
+  renderMonthOptions(monthSelect, period.month);
+  boss.querySelector("#bossRefresh").addEventListener("click", refreshBossPortal);
+  boss.querySelector("#bossYear").addEventListener("change", refreshBossPortal);
+  monthSelect.addEventListener("change", refreshBossPortal);
+  boss.querySelector("#bossPrintAll").addEventListener("click", () => printBossReports());
+  await refreshBossPortal();
+  window.setInterval(refreshBossPortal, CLOUD_SYNC_INTERVAL_MS);
+}
+
+function getBossPeriod() {
+  const year = Number(document.getElementById("bossYear").value);
+  const month = Number(document.getElementById("bossMonth").value);
+  if (!Number.isInteger(year) || year < 2000 || year > 2100 || !Number.isInteger(month) || month < 1 || month > 12) {
+    throw new Error("Invalid report period");
+  }
+  return { year, month };
+}
+
+async function loadBossData() {
+  const response = await fetch(CLOUD_SYNC_PATH, { cache: "no-store" });
+  if (!response.ok) throw new Error("Could not load shared data");
+  const payload = await response.json();
+  if (!payload || !Array.isArray(payload.inspectors) || !payload.global) throw new Error("No shared data is available");
+  normalizeData(payload);
+  return payload;
+}
+
+async function refreshBossPortal() {
+  const list = document.getElementById("bossInspectorList");
+  if (!list) return;
+  const { year, month } = getBossPeriod();
+  document.getElementById("bossPeriod").textContent = `${month} / ${year}`;
+  list.innerHTML = `<p class="boss-message">داتا بار دەکرێت…</p>`;
+  try {
+    const [data, reports] = await Promise.all([loadBossData(), fetchReportStatuses(year, month)]);
+    const sent = new Set(reports.map((report) => Number(report.inspectorId)));
+    list.innerHTML = data.inspectors.map((inspector) => `
+      <div class="boss-inspector-row">
+        <span class="boss-inspector-name">${escapeHtml(inspector.name.trim())}</span>
+        <button type="button" class="button boss-print-one${sent.has(Number(inspector.id)) ? " ready" : ""}" data-boss-print="${Number(inspector.id)}" ${sent.has(Number(inspector.id)) ? "" : "disabled"}>
+          ${sent.has(Number(inspector.id)) ? "ئامادەی چاپ" : "نێردراو نییە"}
+        </button>
+      </div>`).join("") || `<p class="boss-message">هیچ سەرپەرشتیارێک نییە.</p>`;
+    list.querySelectorAll("[data-boss-print]").forEach((button) => button.addEventListener("click", () => {
+      printBossReports([Number(button.dataset.bossPrint)]);
+    }));
+    const printAll = document.getElementById("bossPrintAll");
+    printAll.disabled = sent.size === 0;
+    printAll.classList.toggle("ready", sent.size > 0);
+  } catch (error) {
+    console.error("Boss portal refresh failed", error);
+    list.innerHTML = `<p class="boss-message error">پەیوەندی بە داتای هاوبەش سەرکەوتوو نەبوو. دووبارە نوێی بکەرەوە.</p>`;
+    document.getElementById("bossPrintAll").disabled = true;
+  }
+}
+
+async function printBossReports(onlyInspectorIds = null) {
+  const { year, month } = getBossPeriod();
+  try {
+    const [data, reports] = await Promise.all([loadBossData(), fetchReportStatuses(year, month)]);
+    const sentIds = new Set(reports.map((report) => Number(report.inspectorId)));
+    const chosenIds = onlyInspectorIds ? onlyInspectorIds.filter((id) => sentIds.has(id)) : [...sentIds];
+    if (!chosenIds.length) return;
+    const pages = chosenIds.flatMap((id) => {
+      const index = data.inspectors.findIndex((inspector) => Number(inspector.id) === id);
+      if (index < 0) return [];
+      const inspector = data.inspectors[index];
+      inspector.settings = normalizeSettings({ ...getInspectorSettings(inspector), activityYear: String(year), month }, data.global);
+      loadInspectorActivitiesForSettings(inspector, inspector.settings);
+      return [buildDailyPrintPage(inspector, index)];
+    });
+    if (!pages.length) return;
+    document.getElementById("printRoot").innerHTML = pages.join("");
+    await printAndWaitForClose();
+    await Promise.all(chosenIds.map((inspectorId) => fetch(`${REPORT_STATUS_PATH}/printed`, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ inspectorId, year, month }),
+    })));
+    await refreshBossPortal();
+  } catch (error) {
+    console.error("Boss print failed", error);
+    const list = document.getElementById("bossInspectorList");
+    if (list) list.insertAdjacentHTML("afterbegin", `<p class="boss-message error">چاپکردن سەرکەوتوو نەبوو؛ دڵنیابە داتاکان بارکراون و دووبارە هەوڵ بدە.</p>`);
+  }
+}
+
+function printAndWaitForClose() {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener("afterprint", finish);
+      resolve();
+    };
+    window.addEventListener("afterprint", finish, { once: true });
+    window.print();
+    window.setTimeout(finish, 120000);
+  });
 }
 
 function renderSchoolCounts(inspector) {

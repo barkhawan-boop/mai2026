@@ -7,7 +7,7 @@ workers_dev = true
 [assets]
 directory = "."
 binding = "ASSETS"
-run_worker_first = ["/api/*"]
+run_worker_first = ["/api/*", "/boss"]
 
 [observability]
 enabled = true
@@ -19,3 +19,4 @@ enabled = true
 binding = "DB"
 database_name = "mai2026-user-data"
 database_id = "950b2ace-23be-4124-a9c4-f0ae74fa3631"
+migrations_dir = "migrations"

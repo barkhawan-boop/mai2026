@@ -671,6 +671,11 @@ body {
   background: #edcc68;
 }
 
+.button.send { border-color: #d97878; background: #f2c5c5; }
+.button.send.sent,
+.button.boss-print-one.ready,
+#bossPrintAll.ready { border-color: #59a76d; background: #bfe8c9; }
+
 .button.danger {
   border-color: #d5aaaa;
   color: #000;
@@ -1022,4 +1027,76 @@ textarea::placeholder {
     height: 8mm;
     font-size: 5.8pt;
   }
+
+  .excel-sheet,
+  .excel-sheet th,
+  .excel-sheet td,
+  .excel-sheet .top-title td,
+  .excel-sheet .activity-text,
+  .excel-sheet .group-header td,
+  .excel-sheet .sub-header td,
+  .excel-sheet .value-row td,
+  .excel-sheet .stat-row td,
+  .excel-sheet .signature td,
+  .excel-sheet .title-row td,
+  .excel-sheet .sign-block td { font-size: 14px !important; }
+
+  body.boss-mode > :not(#printRoot) { display: none !important; }
+}
+
+body.boss-mode { min-height: 100vh; padding: 28px; color: #000; background: linear-gradient(135deg, #e9f1fb, #f7f9fc 52%, #fbf7e9); }
+body.boss-mode > .boss-portal { display: block; }
+body.boss-mode > :not(.boss-portal):not(#printRoot):not(.toast) { display: none; }
+.boss-portal { max-width: 1100px; margin: 0 auto; color: #000; }
+.boss-header, .boss-list-panel { padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: var(--shadow); }
+.boss-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-bottom: 4px solid #e5bf54; }
+.boss-header h1, .boss-list-heading h2 { margin: 0; color: #000; }
+.boss-header p { margin: 6px 0 0; color: #000; }
+.boss-actions { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
+.boss-actions label { display: grid; gap: 5px; font-weight: 700; }
+.boss-actions input, .boss-actions select { width: 100px; min-height: 38px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.boss-list-panel { margin-top: 18px; }
+.boss-list-heading, .boss-inspector-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.boss-list-heading { margin-bottom: 12px; }
+.boss-inspector-list { display: grid; gap: 10px; }
+.boss-inspector-row { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
+.boss-inspector-name { font-size: 1.08rem; font-weight: 800; }
+.boss-print-one:disabled, #bossPrintAll:disabled { color: #555; background: #e8e8e8; border-color: #c8c8c8; cursor: not-allowed; opacity: 0.8; }
+.boss-message { margin: 8px 0; color: #000; }
+.boss-message.error { color: #9a2222; }
+@media (max-width: 640px) {
+  body.boss-mode { padding: 12px; }
+  .boss-header, .boss-list-panel { padding: 16px; }
+  .boss-actions { align-items: stretch; }
+  .boss-actions > * { flex: 1 1 auto; }
+  .boss-inspector-name { font-size: 1rem; }
+}
+
+body.boss-mode { min-height: 100vh; padding: 28px; color: #000; background: linear-gradient(135deg, #e9f1fb, #f7f9fc 52%, #fbf7e9); }
+body.boss-mode > .boss-portal { display: block; }
+body.boss-mode > :not(.boss-portal):not(#printRoot):not(.toast) { display: none; }
+.boss-portal { max-width: 1100px; margin: 0 auto; color: #000; }
+.boss-header, .boss-list-panel { padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: var(--shadow); }
+.boss-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-bottom: 4px solid #e5bf54; }
+.boss-header h1, .boss-list-heading h2 { margin: 0; color: #000; }
+.boss-header p { margin: 6px 0 0; color: #000; }
+.boss-actions { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
+.boss-actions label { display: grid; gap: 5px; font-weight: 700; }
+.boss-actions input, .boss-actions select { width: 100px; min-height: 38px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.boss-list-panel { margin-top: 18px; }
+.boss-list-heading, .boss-inspector-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.boss-list-heading { margin-bottom: 12px; }
+.boss-inspector-list { display: grid; gap: 10px; }
+.boss-inspector-row { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
+.boss-inspector-name { font-size: 1.08rem; font-weight: 800; }
+.boss-print-one:disabled, #bossPrintAll:disabled { color: #555; background: #e8e8e8; border-color: #c8c8c8; cursor: not-allowed; opacity: 0.8; }
+.boss-message { margin: 8px 0; color: #000; }
+.boss-message.error { color: #9a2222; }
+
+@media (max-width: 640px) {
+  body.boss-mode { padding: 12px; }
+  .boss-header, .boss-list-panel { padding: 16px; }
+  .boss-actions { align-items: stretch; }
+  .boss-actions > * { flex: 1 1 auto; }
+  .boss-inspector-name { font-size: 1rem; }
 }

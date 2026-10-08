@@ -52,9 +52,75 @@ async function handleDataRequest(request, env) {
   return jsonResponse({ error: "Method not allowed" }, { status: 405 });
 }
 
+function parseReportPeriod(url) {
+  const activityYear = Number(url.searchParams.get("year"));
+  const activityMonth = Number(url.searchParams.get("month"));
+  if (!Number.isInteger(activityYear) || activityYear < 2000 || activityYear > 2100 ||
+      !Number.isInteger(activityMonth) || activityMonth < 1 || activityMonth > 12) return null;
+  return { activityYear, activityMonth };
+}
+
+function parseReportAction(body) {
+  const inspectorId = Number(body?.inspectorId);
+  const activityYear = Number(body?.year);
+  const activityMonth = Number(body?.month);
+  if (!Number.isSafeInteger(inspectorId) || inspectorId < 1 ||
+      !Number.isInteger(activityYear) || activityYear < 2000 || activityYear > 2100 ||
+      !Number.isInteger(activityMonth) || activityMonth < 1 || activityMonth > 12) return null;
+  return { inspectorId, activityYear, activityMonth };
+}
+
+async function handleReportStatusRequest(request, env, url) {
+  if (!env.DB) return jsonResponse({ error: "Missing D1 database binding" }, { status: 500 });
+
+  if (request.method === "GET") {
+    const period = parseReportPeriod(url);
+    if (!period) return jsonResponse({ error: "Invalid report period" }, { status: 400 });
+    const result = await env.DB.prepare(
+      "SELECT inspector_id AS inspectorId, sent_at AS sentAt FROM report_status WHERE activity_year = ?1 AND activity_month = ?2",
+    ).bind(period.activityYear, period.activityMonth).all();
+    return jsonResponse({ reports: result.results || [] });
+  }
+
+  if (request.method !== "POST") return jsonResponse({ error: "Method not allowed" }, { status: 405 });
+
+  let action;
+  try {
+    action = parseReportAction(await request.json());
+  } catch {
+    return jsonResponse({ error: "Invalid JSON" }, { status: 400 });
+  }
+  if (!action) return jsonResponse({ error: "Invalid report status request" }, { status: 400 });
+
+  if (url.pathname === "/api/report-status/send") {
+    await env.DB.prepare(
+      `INSERT INTO report_status (inspector_id, activity_year, activity_month, sent_at)
+       VALUES (?1, ?2, ?3, CURRENT_TIMESTAMP)
+       ON CONFLICT(inspector_id, activity_year, activity_month) DO UPDATE SET sent_at = CURRENT_TIMESTAMP`,
+    ).bind(action.inspectorId, action.activityYear, action.activityMonth).run();
+    return jsonResponse({ ok: true });
+  }
+
+  if (url.pathname === "/api/report-status/printed") {
+    await env.DB.prepare(
+      "DELETE FROM report_status WHERE inspector_id = ?1 AND activity_year = ?2 AND activity_month = ?3",
+    ).bind(action.inspectorId, action.activityYear, action.activityMonth).run();
+    return jsonResponse({ ok: true });
+  }
+
+  return jsonResponse({ error: "Not found" }, { status: 404 });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/boss") {
+      if (!env.ASSETS) return new Response("Not found", { status: 404 });
+      return env.ASSETS.fetch(new Request(new URL("/", url), request));
+    }
+    if (url.pathname === "/api/report-status" || url.pathname.startsWith("/api/report-status/")) {
+      return handleReportStatusRequest(request, env, url);
+    }
     if (url.pathname === "/api/data") {
       if (request.method === "GET" && url.searchParams.has("intent")) {
         const intent = url.searchParams.get("intent") === "save" ? "save" : "load";
