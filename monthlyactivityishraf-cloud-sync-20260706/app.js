@@ -678,6 +678,7 @@ async function initBossPortal() {
         <label>مانگ <select id="bossMonth"></select></label>
         <button class="button ghost" id="bossRefresh" type="button">نوێکردنەوە</button>
         <button class="button print" id="bossPrintAll" type="button" disabled>چاپکردنی هەموو نێردراوەکان</button>
+        <button class="button print" id="bossPrintSummary" type="button" disabled>چاپکردنی پوختە</button>
       </div>
     </header>
     <section class="boss-list-panel"><div class="boss-list-heading"><h2>سەرپەرشتیاران</h2><span id="bossPeriod"></span></div><div id="bossInspectorList" class="boss-inspector-list" aria-live="polite"></div></section>`;
@@ -688,6 +689,7 @@ async function initBossPortal() {
   boss.querySelector("#bossYear").addEventListener("change", refreshBossPortal);
   monthSelect.addEventListener("change", refreshBossPortal);
   boss.querySelector("#bossPrintAll").addEventListener("click", () => printBossReports());
+  boss.querySelector("#bossPrintSummary").addEventListener("click", printBossSummary);
   await refreshBossPortal();
   window.setInterval(refreshBossPortal, CLOUD_SYNC_INTERVAL_MS);
 }
@@ -732,10 +734,39 @@ async function refreshBossPortal() {
     const printAll = document.getElementById("bossPrintAll");
     printAll.disabled = sent.size === 0;
     printAll.classList.toggle("ready", sent.size > 0);
+    const everyInspectorSent = data.inspectors.length > 0 && data.inspectors.every((inspector) => sent.has(Number(inspector.id)));
+    const printSummary = document.getElementById("bossPrintSummary");
+    printSummary.disabled = !everyInspectorSent;
+    printSummary.classList.toggle("ready", everyInspectorSent);
   } catch (error) {
     console.error("Boss portal refresh failed", error);
     list.innerHTML = `<p class="boss-message error">پەیوەندی بە داتای هاوبەش سەرکەوتوو نەبوو. دووبارە نوێی بکەرەوە.</p>`;
     document.getElementById("bossPrintAll").disabled = true;
+    document.getElementById("bossPrintSummary").disabled = true;
+  }
+}
+
+async function printBossSummary() {
+  try {
+    const { year, month } = getBossPeriod();
+    const [data, reports] = await Promise.all([loadBossData(), fetchReportStatuses(year, month)]);
+    const sentIds = new Set(reports.map((report) => Number(report.inspectorId)));
+    if (!data.inspectors.length || !data.inspectors.every((inspector) => sentIds.has(Number(inspector.id)))) {
+      await refreshBossPortal();
+      return;
+    }
+    data.inspectors.forEach((inspector) => {
+      inspector.settings = normalizeSettings({ ...getInspectorSettings(inspector), activityYear: String(year), month }, data.global);
+      loadInspectorActivitiesForSettings(inspector, inspector.settings);
+    });
+    appData = data;
+    const printRoot = document.getElementById("printRoot");
+    printRoot.innerHTML = buildSummaryPrintPage();
+    await printAndWaitForClose();
+  } catch (error) {
+    console.error("Boss summary print failed", error);
+    const list = document.getElementById("bossInspectorList");
+    if (list) list.insertAdjacentHTML("afterbegin", `<p class="boss-message error">چاپی پوختە سەرکەوتوو نەبوو؛ دووبارە هەوڵ بدە.</p>`);
   }
 }
 

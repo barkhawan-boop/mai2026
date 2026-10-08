@@ -810,6 +810,11 @@ textarea::placeholder {
     padding: 0;
   }
 
+  .summary-print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
   .excel-sheet {
     width: 100%;
     border: 0.45pt solid #000;
