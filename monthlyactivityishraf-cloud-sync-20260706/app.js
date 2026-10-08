@@ -1363,35 +1363,36 @@ function buildSummaryPrintPage() {
     <table class="excel-sheet excel-summary" dir="rtl">
       <colgroup>${summaryColumns.map((width) => `<col style="width: ${width}">`).join("")}</colgroup>
       <tbody>
-        <tr class="title-row"><td colspan="30" class="rtl">یەكەی دڵنیایی جۆری سەرپەرشتیكردنی پەروەردەیی ناوەندی هەولێر</td></tr>
+        <tr class="title-row"><td colspan="30" class="rtl sheet-title">یەكەی دڵنیایی جۆری سەرپەرشتیكردنی پەروەردەیی ناوەندی هەولێر</td></tr>
         <tr class="title-row">
-          <td colspan="18" class="rtl">پوختەی ( كاری مانگانە / چاڵاكی مانگانە )ی سەرپەرشتیارانی پەروەردەیی / ناوەندی هەولێر مانگی ${escapeHtml(settings.month)}</td>
-          <td colspan="12" class="rtl">ساڵی ${escapeHtml(settings.studyYear)}</td>
+          <td colspan="17" class="rtl">پوختەی ( كاری مانگانە / چاڵاكی مانگانە )ی سەرپەرشتیارانی پەروەردەیی / ناوەندی هەولێر مانگی</td>
+          <td class="month-value ltr">${escapeHtml(settings.month)}</td>
+          <td colspan="12" class="rtl year-cell">ساڵی ${escapeHtml(settings.studyYear)}</td>
         </tr>
-        <tr class="header-row">
+        <tr class="header-row main-group-row">
           <td rowspan="5" class="rtl">ژ</td>
           <td rowspan="5" class="rtl">ناوى سەرپەرشتيار</td>
-          <td rowspan="5" class="rtl">پسپۆرى</td>
+          <td rowspan="5" class="rtl vertical"><span>پسپۆرى</span></td>
           <td colspan="13" class="rtl">سەردانەكان</td>
           <td colspan="14" class="rtl">چالاكيەكان</td>
         </tr>
-        <tr class="header-row">
+        <tr class="header-row subgroup-row">
           <td colspan="4" class="rtl">ژمارەى ئەو</td>
           <td colspan="4" class="rtl">ژمارەى ئەو قوتابخانانەى</td>
           <td colspan="5" class="rtl">ژمارەى سەردانەكانى</td>
           ${summaryVerticalHeaders()}
         </tr>
-        <tr class="header-row">
+        <tr class="header-row subgroup-row">
           <td colspan="4" class="rtl">قوتابخانانەى لە</td>
           <td colspan="4" class="rtl">لە پلاندان بۆ سەردانيكردن</td>
           <td colspan="5" class="rtl">بۆ قوتابخانەكان</td>
         </tr>
-        <tr class="header-row">
+        <tr class="header-row subgroup-row">
           <td colspan="4" class="rtl">ئەستۆيەتى</td>
           <td colspan="4" class="rtl">لەم مانگە</td>
           <td colspan="5" class="rtl">لەم مانگە</td>
         </tr>
-        <tr class="header-row">
+        <tr class="header-row vertical-label-row">
           <td class="rtl vertical"><span>پسپۆرى</span></td>
           <td class="rtl vertical"><span>سەرپەرشتیاری پەروەردەیی</span></td>
           <td class="rtl vertical"><span>هەڵسەنگاندنى دەرەكى</span></td>
@@ -1408,8 +1409,12 @@ function buildSummaryPrintPage() {
         </tr>
         ${inspectorRows}
         ${totalRow}
-        <tr class="sign-block"><td colspan="21">&nbsp;</td><td colspan="6" class="rtl">بەرپرسی بەش</td><td colspan="3">&nbsp;</td></tr>
-        <tr class="sign-block"><td colspan="21">&nbsp;</td><td colspan="6" class="rtl">${escapeHtml(settings.head)}</td><td colspan="3">&nbsp;</td></tr>
+        <tr class="sign-spacer"><td colspan="30">&nbsp;</td></tr>
+        <tr class="sign-spacer"><td colspan="30">&nbsp;</td></tr>
+        <tr class="sign-label-row"><td colspan="21" rowspan="2">&nbsp;</td><td colspan="6" rowspan="2" class="rtl">بەرپرسی بەش</td><td colspan="3" rowspan="2">&nbsp;</td></tr>
+        <tr class="sign-label-continuation"></tr>
+        <tr class="sign-name-row"><td colspan="21" rowspan="2">&nbsp;</td><td colspan="6" rowspan="2" class="rtl">${escapeHtml(settings.head)}</td><td colspan="3" rowspan="2">&nbsp;</td></tr>
+        <tr class="sign-name-continuation"></tr>
       </tbody>
     </table>
   </section>`;
@@ -1472,7 +1477,7 @@ function buildSummaryPrintRow(rowNumber, inspector) {
     stats.teacherTrainingAttendance,
     stats.otherActivities,
   ];
-  return `<tr>${values.map((value) => printCell(value)).join("")}</tr>`;
+  return `<tr>${values.map((value, index) => printCell(value, index === 1 ? "name-cell" : "")).join("")}</tr>`;
 }
 
 function buildSummaryTotalRow(totals) {
@@ -1510,9 +1515,9 @@ function buildSummaryTotalRow(totals) {
     .join("")}</tr>`;
 }
 
-function printCell(value) {
+function printCell(value, extraClass = "") {
   const isNumber = typeof value === "number";
-  const className = isNumber ? "ltr" : "rtl";
+  const className = [isNumber ? "ltr" : "rtl", extraClass].filter(Boolean).join(" ");
   return `<td class="${className}">${value === "" ? "&nbsp;" : escapeHtml(value)}</td>`;
 }
 

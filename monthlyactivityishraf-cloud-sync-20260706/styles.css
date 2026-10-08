@@ -1018,13 +1018,30 @@ textarea::placeholder {
   .excel-summary td,
   .excel-summary th {
     padding: 0.45mm 0.35mm;
-    height: 4.6mm;
+    height: 7.4mm;
     font-weight: 700;
   }
 
   .excel-summary .title-row td {
-    height: 5.2mm;
+    height: 7.4mm;
     font-size: 6.3pt;
+  }
+
+  .excel-summary .sheet-title,
+  .excel-summary .year-cell {
+    text-align: right;
+  }
+
+  .excel-summary .main-group-row td {
+    height: 6.5mm;
+  }
+
+  .excel-summary .subgroup-row td {
+    height: 5.3mm;
+  }
+
+  .excel-summary .vertical-label-row td {
+    height: 73.2mm;
   }
 
   .excel-summary .header-row td {
@@ -1032,19 +1049,22 @@ textarea::placeholder {
   }
 
   .excel-summary .vertical {
-    height: 54mm;
     padding: 0;
     vertical-align: middle;
     text-align: center;
+    position: relative;
   }
 
   .excel-summary .vertical span {
-    display: inline-block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: block;
     width: max-content;
     direction: rtl;
     unicode-bidi: plaintext;
     writing-mode: horizontal-tb;
-    transform: rotate(-90deg);
+    transform: translate(-50%, -50%) rotate(-90deg);
     transform-origin: center;
     white-space: nowrap;
     text-align: center;
@@ -1054,13 +1074,43 @@ textarea::placeholder {
   .excel-summary .total td {
     background: #d9d9d9;
     font-weight: 800;
+    height: 6.35mm;
   }
 
-  .excel-summary .sign-block td {
+  .excel-summary .name-cell {
+    text-align: right;
+  }
+
+  .excel-summary .sign-spacer td {
+    height: 6.35mm;
     border: 0;
     background: #fff;
-    height: 8mm;
+  }
+
+  .excel-summary .sign-label-row td {
+    height: 7.82mm;
+    border: 0;
+    background: #fff;
     font-size: 5.8pt;
+  }
+
+  .excel-summary .sign-label-continuation td {
+    height: 6.35mm;
+    border: 0;
+    background: #fff;
+  }
+
+  .excel-summary .sign-name-row td {
+    height: 5.3mm;
+    border: 0;
+    background: #fff;
+    font-size: 5.8pt;
+  }
+
+  .excel-summary .sign-name-continuation td {
+    height: 5.3mm;
+    border: 0;
+    background: #fff;
   }
 
   .print-root .excel-sheet,
