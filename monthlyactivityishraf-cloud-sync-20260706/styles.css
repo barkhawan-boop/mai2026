@@ -751,7 +751,7 @@ textarea::placeholder {
 
   @page summary {
     size: A4 landscape;
-    margin: 0;
+    margin: 6mm;
   }
 
   * {
@@ -782,12 +782,16 @@ textarea::placeholder {
   }
 
   .print-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     page-break-after: always;
     break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid-page;
     width: 198mm;
-    min-height: 0;
-    margin-left: auto;
-    margin-right: 0;
+    min-height: 285mm;
+    margin: 0 auto;
     padding: 0;
     box-sizing: border-box;
     overflow: hidden;
@@ -802,19 +806,18 @@ textarea::placeholder {
 
   .summary-print-page {
     page: summary;
-    width: 297mm;
-    min-height: 0;
+    width: 285mm;
+    min-height: 198mm;
     padding: 0;
-    margin-left: auto;
-    margin-right: 0;
+    margin: 0 auto;
     box-sizing: border-box;
   }
 
   .summary-print-page .excel-summary {
+    flex: 0 0 100%;
     width: 100%;
     max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
+    margin: auto 0;
     table-layout: fixed;
     direction: rtl;
   }
@@ -831,6 +834,8 @@ textarea::placeholder {
     table-layout: fixed;
     direction: rtl;
     unicode-bidi: isolate;
+    page-break-inside: avoid;
+    break-inside: avoid-page;
   }
 
   .excel-sheet th,
