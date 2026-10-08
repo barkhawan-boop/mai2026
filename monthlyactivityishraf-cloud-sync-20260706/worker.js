@@ -77,7 +77,7 @@ async function handleReportStatusRequest(request, env, url) {
     const period = parseReportPeriod(url);
     if (!period) return jsonResponse({ error: "Invalid report period" }, { status: 400 });
     const result = await env.DB.prepare(
-      "SELECT inspector_id AS inspectorId, sent_at AS sentAt FROM report_status WHERE activity_year = ?1 AND activity_month = ?2",
+      "SELECT inspector_id AS inspectorId, sent_at AS sentAt, printed_at AS printedAt FROM report_status WHERE activity_year = ?1 AND activity_month = ?2 AND (printed_at IS NULL OR printed_at > datetime('now', '-7 days'))",
     ).bind(period.activityYear, period.activityMonth).all();
     return jsonResponse({ reports: result.results || [] });
   }
@@ -103,7 +103,7 @@ async function handleReportStatusRequest(request, env, url) {
 
   if (url.pathname === "/api/report-status/printed") {
     await env.DB.prepare(
-      "DELETE FROM report_status WHERE inspector_id = ?1 AND activity_year = ?2 AND activity_month = ?3",
+      "UPDATE report_status SET printed_at = CURRENT_TIMESTAMP WHERE inspector_id = ?1 AND activity_year = ?2 AND activity_month = ?3",
     ).bind(action.inspectorId, action.activityYear, action.activityMonth).run();
     return jsonResponse({ ok: true });
   }

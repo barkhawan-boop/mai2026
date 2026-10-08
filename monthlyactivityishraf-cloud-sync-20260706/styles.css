@@ -1028,19 +1028,6 @@ textarea::placeholder {
     font-size: 5.8pt;
   }
 
-  .excel-sheet,
-  .excel-sheet th,
-  .excel-sheet td,
-  .excel-sheet .top-title td,
-  .excel-sheet .activity-text,
-  .excel-sheet .group-header td,
-  .excel-sheet .sub-header td,
-  .excel-sheet .value-row td,
-  .excel-sheet .stat-row td,
-  .excel-sheet .signature td,
-  .excel-sheet .title-row td,
-  .excel-sheet .sign-block td { font-size: 14px !important; }
-
   body.boss-mode > :not(#printRoot) { display: none !important; }
 }
 

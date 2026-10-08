@@ -757,10 +757,11 @@ async function printBossReports(onlyInspectorIds = null) {
     if (!pages.length) return;
     document.getElementById("printRoot").innerHTML = pages.join("");
     await printAndWaitForClose();
-    await Promise.all(chosenIds.map((inspectorId) => fetch(`${REPORT_STATUS_PATH}/printed`, {
+    const printResponses = await Promise.all(chosenIds.map((inspectorId) => fetch(`${REPORT_STATUS_PATH}/printed`, {
       method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({ inspectorId, year, month }),
     })));
+    if (printResponses.some((response) => !response.ok)) throw new Error("Could not update printed status");
     await refreshBossPortal();
   } catch (error) {
     console.error("Boss print failed", error);
