@@ -1392,19 +1392,19 @@ function buildSummaryPrintPage() {
           <td colspan="5" class="rtl">لەم مانگە</td>
         </tr>
         <tr class="header-row">
-          <td class="rtl">پسپۆرى</td>
-          <td class="rtl">سەرپەرشتیاری پەروەردەیی</td>
-          <td class="rtl">هەڵسەنگاندنى دەرەكى</td>
-          <td class="rtl">كۆ</td>
-          <td class="rtl">پسپۆرى</td>
-          <td class="rtl">سەرپەرشتیاری پەروەردەیی</td>
-          <td class="rtl">هەڵسەنگاندنى دەرەكى</td>
-          <td class="rtl">كۆ</td>
-          <td class="rtl">پسپۆرى</td>
-          <td class="rtl">سەرپەرشتیاری پەروەردەیی</td>
-          <td class="rtl">هەڵسەنگاندنى دەرەكى</td>
-          <td class="rtl">هەر سەردانێكى ترى فەرمى</td>
-          <td class="rtl">كۆ</td>
+          <td class="rtl vertical"><span>پسپۆرى</span></td>
+          <td class="rtl vertical"><span>سەرپەرشتیاری پەروەردەیی</span></td>
+          <td class="rtl vertical"><span>هەڵسەنگاندنى دەرەكى</span></td>
+          <td class="rtl vertical"><span>كۆ</span></td>
+          <td class="rtl vertical"><span>پسپۆرى</span></td>
+          <td class="rtl vertical"><span>سەرپەرشتیاری پەروەردەیی</span></td>
+          <td class="rtl vertical"><span>هەڵسەنگاندنى دەرەكى</span></td>
+          <td class="rtl vertical"><span>كۆ</span></td>
+          <td class="rtl vertical"><span>پسپۆرى</span></td>
+          <td class="rtl vertical"><span>سەرپەرشتیاری پەروەردەیی</span></td>
+          <td class="rtl vertical"><span>هەڵسەنگاندنى دەرەكى</span></td>
+          <td class="rtl vertical"><span>هەر سەردانێكى ترى فەرمى</span></td>
+          <td class="rtl vertical"><span>كۆ</span></td>
         </tr>
         ${inspectorRows}
         ${totalRow}
