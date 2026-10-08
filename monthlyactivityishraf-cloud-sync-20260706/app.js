@@ -666,7 +666,8 @@ async function sendCurrentReport() {
 
 async function initBossPortal() {
   document.body.classList.add("boss-mode");
-  const period = normalizeSettings(appData.global);
+  const today = new Date();
+  const period = { activityYear: String(today.getFullYear()), month: today.getMonth() + 1 };
   const boss = document.createElement("main");
   boss.id = "bossPortal";
   boss.className = "boss-portal";
@@ -691,7 +692,19 @@ async function initBossPortal() {
   boss.querySelector("#bossPrintAll").addEventListener("click", () => printBossReports());
   boss.querySelector("#bossPrintSummary").addEventListener("click", printBossSummary);
   await refreshBossPortal();
-  window.setInterval(refreshBossPortal, CLOUD_SYNC_INTERVAL_MS);
+  window.setInterval(() => {
+    const now = new Date();
+    const yearInput = document.getElementById("bossYear");
+    const monthInput = document.getElementById("bossMonth");
+    if (!yearInput || !monthInput) return;
+    const year = String(now.getFullYear());
+    const month = String(now.getMonth() + 1);
+    if (yearInput.value !== year || monthInput.value !== month) {
+      yearInput.value = year;
+      monthInput.value = month;
+      refreshBossPortal();
+    }
+  }, 60000);
 }
 
 function getBossPeriod() {
