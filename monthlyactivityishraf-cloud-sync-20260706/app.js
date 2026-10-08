@@ -1295,7 +1295,7 @@ function buildDailyPrintPage(inspector, index) {
           <td colspan="2">${visited.other || ""}</td>
           <td colspan="2">${visited.total}</td>
         </tr>
-        <tr class="green stat-row">
+        <tr class="green stat-row stat-row-1">
           <td colspan="3" class="rtl">ژمارەی کۆبونەوەکانی بەشداریکردوە</td>
           <td>${optionalPrintNumber(stats.meetingsParticipated)}</td>
           <td colspan="4" class="rtl">ژمارەی کۆبونەوەکانی ئەنجامی داوە</td>
@@ -1303,7 +1303,7 @@ function buildDailyPrintPage(inspector, index) {
           <td colspan="2" class="rtl">ژمارەی لیژنەکانی بەشداریکردووە</td>
           <td>${optionalPrintNumber(stats.committees)}</td>
         </tr>
-        <tr class="green stat-row">
+        <tr class="green stat-row stat-row-2">
           <td colspan="3" rowspan="2" class="rtl">ژمارەی لێکۆڵینەوەکانی کە بەشداریکردووە</td>
           <td rowspan="2">${optionalPrintNumber(stats.research)}</td>
           <td colspan="4" class="rtl">ژمارەی ئەو وانە مەشقی و ڕاهێنانی کە خۆی ئەنجامی داوە</td>
@@ -1311,13 +1311,13 @@ function buildDailyPrintPage(inspector, index) {
           <td colspan="2" class="rtl">ژمارەی ئەو کۆرو سمیناری کە خۆی ئەنجامی داوە</td>
           <td>${optionalPrintNumber(stats.seminarsConducted)}</td>
         </tr>
-        <tr class="green stat-row">
+        <tr class="green stat-row stat-row-3">
           <td colspan="4" class="rtl">ژمارەی بەشداریکردنی لە کۆبونەوەی دایبابان</td>
           <td>${optionalPrintNumber(stats.parentMeetings)}</td>
           <td colspan="2" class="rtl">ژمارەی ئامادەبوونی لە وانەی مامۆستایی ڕاهێنەر</td>
           <td>${optionalPrintNumber(stats.teacherTrainingAttendance)}</td>
         </tr>
-        <tr class="green stat-row">
+        <tr class="green stat-row stat-row-4">
           <td colspan="3" class="rtl">ژمارەی ڕاپۆرتەکانی لەسەر پرۆگرام و پرۆسەی پەروەردە</td>
           <td>${optionalPrintNumber(stats.reports)}</td>
           <td colspan="4" class="rtl">ژمارەی یاداشتەکانی</td>
@@ -1325,6 +1325,7 @@ function buildDailyPrintPage(inspector, index) {
           <td colspan="2" class="rtl">ژمارەی چالاکی جۆراو جۆری کە ئەنجامی داوە</td>
           <td>${optionalPrintNumber(stats.otherActivities)}</td>
         </tr>
+        <tr class="stat-spacer"><td colspan="12">&nbsp;</td></tr>
         <tr class="signature">
           <td colspan="2" class="rtl">ناوی سەرپەرشتیار:</td>
           <td colspan="2" class="rtl">${escapeHtml(inspector.name)}</td>
