@@ -778,6 +778,7 @@ textarea::placeholder {
     display: block !important;
     color: #000;
     background: #fff;
+    font-family: "Sarchia-Baran", "Noto Naskh Arabic", Tahoma, Arial, sans-serif;
   }
 
   .print-page {
@@ -789,7 +790,7 @@ textarea::placeholder {
     padding: 0 1mm;
     overflow: hidden;
     background: #fff;
-    font-family: Arial, Tahoma, "Segoe UI", sans-serif;
+    font-family: "Sarchia-Baran", "Noto Naskh Arabic", Tahoma, Arial, sans-serif;
   }
 
   .print-page:last-child {
@@ -1037,10 +1038,7 @@ textarea::placeholder {
   .print-root .excel-sheet,
   .print-root .excel-sheet th,
   .print-root .excel-sheet td,
-  .print-root .excel-sheet span,
-  .print-root .excel-sheet td,
-  .print-root .excel-sheet th,
-  .print-root .excel-sheet { font-size: 14px !important; }
+  .print-root .excel-sheet span { font-size: 10px !important; }
 
   body.boss-mode > :not(#printRoot) { display: none !important; }
 }
