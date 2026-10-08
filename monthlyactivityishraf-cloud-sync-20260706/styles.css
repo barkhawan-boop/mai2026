@@ -943,6 +943,8 @@ textarea::placeholder {
   .excel-daily td,
   .excel-daily th {
     height: 4.78mm;
+    padding: 0.1mm 0.5mm;
+    line-height: 1;
   }
 
   .excel-daily .top-title td {
