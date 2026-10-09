@@ -8,10 +8,20 @@ const XML_NS = "http://www.w3.org/XML/1998/namespace";
 const OFFICE_REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const PACKAGE_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships";
 const CONTENT_TYPES_NS = "http://schemas.openxmlformats.org/package/2006/content-types";
+const DRAWING_NS = "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing";
+const DRAWING_REL_TYPE = `${OFFICE_REL_NS}/drawing`;
+const IMAGE_REL_TYPE = `${OFFICE_REL_NS}/image`;
 const WORKSHEET_REL_TYPE = `${OFFICE_REL_NS}/worksheet`;
 const WORKSHEET_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml";
 const SUMMARY_SHEET_FILE = "xl/worksheets/sheet6.xml";
 const SUMMARY_SHEET_NAME = "پوختە";
+const SIGNATURE_ASSET_VERSION = "20261009";
+const INSPECTOR_SIGNATURES = [
+  { file: "muzaffar.png", width: 842, height: 534, aliases: ["مظفر حيدر مولود", "مظفر حیدر مولود"] },
+  { file: "khalid.png", width: 693, height: 325, aliases: ["خالد ابراهيم رحيم", "خالد إبراهيم رحيم"] },
+  { file: "barkhawan.png", width: 774, height: 638, aliases: ["بەرخەوان عثمان امين", "بەرخەوان عوسمان ئەمین"] },
+  { file: "dana.png", width: 791, height: 387, aliases: ["دانا احمد محمد", "دانا أحمد محمد"] },
+];
 
 const kurdishDays = [
   "یەکشەم",
@@ -839,7 +849,8 @@ async function printBossReports(onlyInspectorIds = null) {
   }
 }
 
-function printAndWaitForClose() {
+async function printAndWaitForClose() {
+  await waitForPrintImages();
   return new Promise((resolve) => {
     let settled = false;
     const finish = () => {
@@ -852,6 +863,18 @@ function printAndWaitForClose() {
     window.print();
     window.setTimeout(finish, 120000);
   });
+}
+
+function waitForPrintImages() {
+  const images = Array.from(document.getElementById("printRoot")?.querySelectorAll("img") || []);
+  return Promise.all(images.map((image) => {
+    if (image.complete && image.naturalWidth) return Promise.resolve();
+    if (typeof image.decode === "function") return image.decode().catch(() => {});
+    return new Promise((resolve) => {
+      image.addEventListener("load", resolve, { once: true });
+      image.addEventListener("error", resolve, { once: true });
+    });
+  }));
 }
 
 function renderSchoolCounts(inspector) {
@@ -1178,7 +1201,7 @@ function printAllSheets() {
   const printRoot = document.getElementById("printRoot");
   printRoot.innerHTML = buildPrintDocument();
   showToast("خشتەکان بۆ چاپ ئامادەکران.");
-  setTimeout(() => window.print(), 80);
+  setTimeout(() => waitForPrintImages().then(() => window.print()), 80);
 }
 
 function printSummarySheet() {
@@ -1187,7 +1210,7 @@ function printSummarySheet() {
   const printRoot = document.getElementById("printRoot");
   printRoot.innerHTML = buildSummaryPrintPage();
   showToast("پوختە بۆ چاپ ئامادەکرا.");
-  setTimeout(() => window.print(), 80);
+  setTimeout(() => waitForPrintImages().then(() => window.print()), 80);
 }
 
 function printCurrentInspector() {
@@ -1200,7 +1223,7 @@ function printCurrentInspector() {
   const index = appData.inspectors.findIndex((item) => item.id === inspector.id);
   printRoot.innerHTML = buildDailyPrintPage(inspector, index);
   showToast("خشتەی ئەم سەرپەرشتیارە بۆ چاپ ئامادەکرا.");
-  setTimeout(() => window.print(), 80);
+  setTimeout(() => waitForPrintImages().then(() => window.print()), 80);
 }
 
 function buildPrintDocument() {
@@ -1212,6 +1235,7 @@ function buildPrintDocument() {
 
 function buildDailyPrintPage(inspector, index) {
   const settings = getInspectorSettings(inspector);
+  const signatureImage = getInspectorSignatureImage(inspector);
   const year = Number(settings.activityYear);
   const month = Number(settings.month);
   const layout = pickLayout(getDaysInMonth(year, month));
@@ -1325,7 +1349,10 @@ function buildDailyPrintPage(inspector, index) {
           <td colspan="2" class="rtl">ژمارەی چالاکی جۆراو جۆری کە ئەنجامی داوە</td>
           <td>${optionalPrintNumber(stats.otherActivities)}</td>
         </tr>
-        <tr class="stat-spacer"><td colspan="12">&nbsp;</td></tr>
+        <tr class="stat-spacer">
+          <td colspan="2">&nbsp;</td><td colspan="2">&nbsp;</td><td>&nbsp;</td><td colspan="2">&nbsp;</td>
+          <td>&nbsp;</td><td colspan="2" class="signature-image-cell">${signatureImage}</td><td colspan="2">&nbsp;</td>
+        </tr>
         <tr class="signature">
           <td colspan="2" class="rtl">ناوی سەرپەرشتیار:</td>
           <td colspan="2" class="rtl">${escapeHtml(inspector.name)}</td>
@@ -1527,6 +1554,32 @@ function optionalPrintNumber(value) {
   return Number.isFinite(number) && number !== 0 ? escapeHtml(number) : "";
 }
 
+function normalizeInspectorSignatureName(value) {
+  return String(value || "")
+    .normalize("NFC")
+    .toLowerCase()
+    .replace(/[\u064B-\u065F\u0670]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/[ىی]/g, "ي")
+    .replace(/ک/g, "ك")
+    .replace(/ـ/g, "")
+    .replace(/\s+/g, "");
+}
+
+function getInspectorSignature(inspector) {
+  const normalizedName = normalizeInspectorSignatureName(inspector?.name);
+  return INSPECTOR_SIGNATURES.find((signature) =>
+    signature.aliases.some((alias) => normalizedName.includes(normalizeInspectorSignatureName(alias))),
+  ) || null;
+}
+
+function getInspectorSignatureImage(inspector) {
+  const signature = getInspectorSignature(inspector);
+  if (!signature) return "";
+  const src = `assets/signatures/${signature.file}?v=${SIGNATURE_ASSET_VERSION}`;
+  return `<img class="inspector-signature-image" src="${escapeHtml(src)}" alt="">`;
+}
+
 async function generateWorkbook(options = {}) {
   if (!window.JSZip) {
     showToast("JSZip بارنەبووە. پەیوەندی ئینتەرنێت پێویستە.");
@@ -1553,6 +1606,7 @@ async function generateWorkbook(options = {}) {
     await normalizeDailySheetLayouts(zip, dailyLayouts, dailySheetInfos);
     await fillInputSheet(zip);
     await fillDailySheets(zip, dailyLayouts, dailySheetInfos);
+    await embedInspectorSignatures(zip, dailyLayouts, dailySheetInfos);
     await fillSummarySheet(zip);
     await updateWorkbookPrintAreas(zip, dailyLayouts, dailySheetInfos);
     await removeCalculationChain(zip);
@@ -1567,6 +1621,91 @@ async function generateWorkbook(options = {}) {
     console.error(error);
     showToast("نەتوانرا فایلی Excel دروست بکرێت.");
   }
+}
+
+async function embedInspectorSignatures(zip, dailyLayouts, dailySheetInfos) {
+  const contentTypesContext = await loadXmlContext(zip, "[Content_Types].xml");
+  const contentTypesRoot = contentTypesContext.doc.documentElement;
+  const drawingParts = new Set(
+    Array.from(contentTypesRoot.children)
+      .filter((node) => node.localName === "Override")
+      .map((node) => node.getAttribute("PartName")),
+  );
+
+  for (let index = 0; index < appData.inspectors.length; index += 1) {
+    const inspector = appData.inspectors[index];
+    const signature = getInspectorSignature(inspector);
+    if (!signature) continue;
+
+    const imagePath = `assets/signatures/${signature.file}?v=${SIGNATURE_ASSET_VERSION}`;
+    const imageResponse = await fetch(imagePath);
+    if (!imageResponse.ok) throw new Error(`Signature image not found: ${signature.file}`);
+
+    const mediaFile = `xl/media/inspector-signature-${index + 1}.png`;
+    const drawingName = `signature-daily-${index + 1}.xml`;
+    const drawingFile = `xl/drawings/${drawingName}`;
+    const drawingRelsFile = `xl/drawings/_rels/${drawingName}.rels`;
+    zip.file(mediaFile, await imageResponse.arrayBuffer());
+
+    const drawingOverridePath = `/${drawingFile}`;
+    if (!drawingParts.has(drawingOverridePath)) {
+      const override = contentTypesContext.doc.createElementNS(CONTENT_TYPES_NS, "Override");
+      override.setAttribute("PartName", drawingOverridePath);
+      override.setAttribute("ContentType", "application/vnd.openxmlformats-officedocument.drawing+xml");
+      contentTypesRoot.appendChild(override);
+      drawingParts.add(drawingOverridePath);
+    }
+
+    const info = dailySheetInfos[index];
+    const worksheetContext = await loadXmlContext(zip, info.file);
+    const worksheetRelsFile = getWorksheetRelsFile(info.file);
+    const worksheetRelsContext = await loadXmlContext(zip, worksheetRelsFile);
+    const worksheetRelsRoot = worksheetRelsContext.doc.documentElement;
+    const drawingRelId = `rId${getNextRelationshipNumber(worksheetRelsRoot)}`;
+    const drawingRel = worksheetRelsContext.doc.createElementNS(PACKAGE_REL_NS, "Relationship");
+    drawingRel.setAttribute("Id", drawingRelId);
+    drawingRel.setAttribute("Type", DRAWING_REL_TYPE);
+    drawingRel.setAttribute("Target", `../drawings/${drawingName}`);
+    worksheetRelsRoot.appendChild(drawingRel);
+
+    const drawingElement = worksheetContext.doc.createElementNS(MAIN_NS, "drawing");
+    if (!worksheetContext.doc.documentElement.getAttribute("xmlns:r")) {
+      worksheetContext.doc.documentElement.setAttribute("xmlns:r", OFFICE_REL_NS);
+    }
+    drawingElement.setAttributeNS(OFFICE_REL_NS, "r:id", drawingRelId);
+    const trailingSheetElements = new Set([
+      "legacyDrawing", "legacyDrawingHF", "picture", "oleObjects", "controls", "webPublishItems", "tableParts", "extLst",
+    ]);
+    const insertBefore = Array.from(worksheetContext.doc.documentElement.children)
+      .find((node) => trailingSheetElements.has(node.localName));
+    worksheetContext.doc.documentElement.insertBefore(drawingElement, insertBefore || null);
+
+    const imageRel = worksheetRelsContext.doc.implementation.createDocument(PACKAGE_REL_NS, "Relationships", null);
+    const imageRelRoot = imageRel.documentElement;
+    const imageRelationship = imageRel.createElementNS(PACKAGE_REL_NS, "Relationship");
+    imageRelationship.setAttribute("Id", "rId1");
+    imageRelationship.setAttribute("Type", IMAGE_REL_TYPE);
+    imageRelationship.setAttribute("Target", `../media/${mediaFile.split("/").pop()}`);
+    imageRelRoot.appendChild(imageRelationship);
+    zip.file(drawingRelsFile, serializeXml(imageRel));
+    zip.file(drawingFile, buildInspectorSignatureDrawingXml(signature, dailyLayouts[index], "rId1"));
+    zip.file(info.file, serializeXml(worksheetContext.doc));
+    zip.file(worksheetRelsFile, serializeXml(worksheetRelsContext.doc));
+  }
+
+  zip.file(contentTypesContext.file, serializeXml(contentTypesContext.doc));
+}
+
+function buildInspectorSignatureDrawingXml(signature, layout, imageRelId) {
+  const maxWidthEmu = 1_200_000;
+  const maxHeightEmu = 430_000;
+  const aspect = signature.width / signature.height;
+  const cx = Math.min(maxWidthEmu, Math.round(maxHeightEmu * aspect));
+  const cy = Math.round(cx / aspect);
+  const spacerRow = Math.max(0, Number(layout?.signatureRow || 2) - 2);
+  const imageName = `Inspector signature ${signature.file.replace(/\.png$/i, "")}`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xdr:wsDr xmlns:xdr="${DRAWING_NS}" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${OFFICE_REL_NS}"><xdr:oneCellAnchor><xdr:from><xdr:col>8</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${spacerRow}</xdr:row><xdr:rowOff>30000</xdr:rowOff></xdr:from><xdr:ext cx="${cx}" cy="${cy}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="1" name="${imageName}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="${imageRelId}" cstate="print"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>`;
 }
 
 function pickLayout(days) {
