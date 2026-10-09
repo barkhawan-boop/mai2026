@@ -15,7 +15,7 @@ const WORKSHEET_REL_TYPE = `${OFFICE_REL_NS}/worksheet`;
 const WORKSHEET_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml";
 const SUMMARY_SHEET_FILE = "xl/worksheets/sheet6.xml";
 const SUMMARY_SHEET_NAME = "پوختە";
-const SIGNATURE_ASSET_VERSION = "20261009-head";
+const SIGNATURE_ASSET_VERSION = "20261009-sign-size-2";
 const INSPECTOR_SIGNATURES = [
   { file: "muzaffar.png", width: 842, height: 534, aliases: ["مظفر حيدر مولود", "مظفر حیدر مولود"] },
   { file: "khalid.png", width: 693, height: 325, aliases: ["خالد ابراهيم رحيم", "خالد إبراهيم رحيم"] },
@@ -1714,7 +1714,7 @@ async function embedInspectorSignatures(zip, dailyLayouts, dailySheetInfos) {
 
 function buildInspectorSignatureDrawingXml(signature, layout, imageRelId, options = {}) {
   const maxWidthEmu = 1_600_000;
-  const maxHeightEmu = 500_000;
+  const maxHeightEmu = 1_000_000;
   const aspect = signature.width / signature.height;
   const cx = Math.min(maxWidthEmu, Math.round(maxHeightEmu * aspect));
   const cy = Math.round(cx / aspect);
@@ -1781,7 +1781,7 @@ async function embedSummaryHeadSignature(zip) {
   imageRelRoot.appendChild(imageRelationship);
 
   const signRow = Math.max(17, 8 + appData.inspectors.length + 5);
-  const drawingXml = buildInspectorSignatureDrawingXml(signature, { signatureRow: signRow - 3 }, "rId1", { col: 21, colOffset: 570000, rowOffset: 0 });
+  const drawingXml = buildInspectorSignatureDrawingXml(signature, { signatureRow: signRow - 3 }, "rId1", { col: 21, colOffset: 0, rowOffset: 0 });
   zip.file(drawingFile, drawingXml);
   zip.file("xl/drawings/_rels/summary-head-signature.xml.rels", serializeXml(imageRel));
   zip.file(worksheetContext.file, serializeXml(worksheetContext.doc));

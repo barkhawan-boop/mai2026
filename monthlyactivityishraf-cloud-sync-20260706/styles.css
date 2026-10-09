@@ -1005,9 +1005,12 @@ textarea::placeholder {
     height: 10.67mm;
   }
 
-  .excel-daily .stat-row-4 td,
-  .excel-daily .stat-spacer td {
+  .excel-daily .stat-row-4 td {
     height: 8.67mm;
+  }
+
+  .excel-daily .stat-spacer td {
+    height: 27mm;
   }
 
   .excel-daily .stat-spacer td {
@@ -1016,15 +1019,19 @@ textarea::placeholder {
   }
 
   .excel-daily .signature-image-cell {
+    position: relative;
     padding: 0;
     overflow: visible;
   }
 
   .inspector-signature-image {
     display: block;
-    width: 100%;
-    height: 10mm;
-    margin: 0 auto;
+    position: relative;
+    left: 50%;
+    width: 42mm;
+    height: 26mm;
+    margin: 0;
+    transform: translateX(-50%);
     object-fit: contain;
     object-position: center;
   }
@@ -1133,7 +1140,7 @@ textarea::placeholder {
   }
 
   .excel-summary .summary-signature-row td {
-    height: 10mm;
+    height: 27mm;
   }
 
   .excel-summary .summary-head-signature-cell {
@@ -1144,8 +1151,8 @@ textarea::placeholder {
 
   .summary-head-signature-image {
     display: block;
-    width: min(100%, 38mm);
-    height: 9mm;
+    width: min(100%, 42mm);
+    height: 26mm;
     margin: 0 auto;
     object-fit: contain;
     object-position: center;
