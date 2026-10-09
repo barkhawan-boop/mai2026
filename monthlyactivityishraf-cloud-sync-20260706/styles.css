@@ -1027,13 +1027,14 @@ textarea::placeholder {
   .inspector-signature-image {
     display: block;
     position: relative;
-    left: 50%;
+    left: calc(50% + 8mm);
     width: 42mm;
     height: 26mm;
     margin: 0;
+    top: 5mm;
     transform: translateX(-50%);
     object-fit: contain;
-    object-position: center;
+    object-position: center bottom;
   }
 
   .excel-daily .signature td {

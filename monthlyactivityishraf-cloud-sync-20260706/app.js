@@ -1704,7 +1704,7 @@ async function embedInspectorSignatures(zip, dailyLayouts, dailySheetInfos) {
     imageRelationship.setAttribute("Target", `../media/${mediaFile.split("/").pop()}`);
     imageRelRoot.appendChild(imageRelationship);
     zip.file(drawingRelsFile, serializeXml(imageRel));
-    zip.file(drawingFile, buildInspectorSignatureDrawingXml(signature, dailyLayouts[index], "rId1"));
+    zip.file(drawingFile, buildInspectorSignatureDrawingXml(signature, dailyLayouts[index], "rId1", { rowOffset: 220000 }));
     zip.file(info.file, serializeXml(worksheetContext.doc));
     zip.file(worksheetRelsFile, serializeXml(worksheetRelsContext.doc));
   }
