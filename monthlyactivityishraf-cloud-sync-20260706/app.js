@@ -15,7 +15,7 @@ const WORKSHEET_REL_TYPE = `${OFFICE_REL_NS}/worksheet`;
 const WORKSHEET_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml";
 const SUMMARY_SHEET_FILE = "xl/worksheets/sheet6.xml";
 const SUMMARY_SHEET_NAME = "پوختە";
-const SIGNATURE_ASSET_VERSION = "20261009";
+const SIGNATURE_ASSET_VERSION = "20261009-head";
 const INSPECTOR_SIGNATURES = [
   { file: "muzaffar.png", width: 842, height: 534, aliases: ["مظفر حيدر مولود", "مظفر حیدر مولود"] },
   { file: "khalid.png", width: 693, height: 325, aliases: ["خالد ابراهيم رحيم", "خالد إبراهيم رحيم"] },
@@ -1386,6 +1386,10 @@ function buildSummaryPrintPage() {
     .map((inspector, index) => buildSummaryPrintRow(index + 1, inspector))
     .join("");
   const totalRow = buildSummaryTotalRow(totals);
+  const headSignature = getSummaryHeadSignature(settings.head);
+  const headSignatureImage = headSignature
+    ? `<img class="summary-head-signature-image" src="assets/signatures/${escapeHtml(headSignature.file)}?v=${SIGNATURE_ASSET_VERSION}" alt="">`
+    : "";
 
   return `<section class="print-page summary-print-page">
     <table class="excel-sheet excel-summary" dir="rtl">
@@ -1437,7 +1441,7 @@ function buildSummaryPrintPage() {
         </tr>
         ${inspectorRows}
         ${totalRow}
-        <tr class="sign-spacer"><td colspan="30">&nbsp;</td></tr>
+        <tr class="sign-spacer summary-signature-row"><td colspan="21">&nbsp;</td><td colspan="6" class="summary-head-signature-cell">${headSignatureImage}</td><td colspan="3">&nbsp;</td></tr>
         <tr class="sign-spacer"><td colspan="30">&nbsp;</td></tr>
         <tr class="sign-label-row"><td colspan="21" rowspan="2">&nbsp;</td><td colspan="6" rowspan="2" class="rtl">بەرپرسی بەش</td><td colspan="3" rowspan="2">&nbsp;</td></tr>
         <tr class="sign-label-continuation"></tr>
@@ -1573,6 +1577,17 @@ function getInspectorSignature(inspector) {
   ) || null;
 }
 
+function getSummaryHeadSignature(headName) {
+  const normalizedHeadName = normalizeInspectorSignatureName(headName);
+  if (!normalizedHeadName) return null;
+  return INSPECTOR_SIGNATURES.find((signature) =>
+    signature.aliases.some((alias) => {
+      const normalizedAlias = normalizeInspectorSignatureName(alias);
+      return normalizedAlias.includes(normalizedHeadName) || normalizedHeadName.includes(normalizedAlias);
+    }),
+  ) || null;
+}
+
 function getInspectorSignatureImage(inspector) {
   const signature = getInspectorSignature(inspector);
   if (!signature) return "";
@@ -1608,6 +1623,7 @@ async function generateWorkbook(options = {}) {
     await fillDailySheets(zip, dailyLayouts, dailySheetInfos);
     await embedInspectorSignatures(zip, dailyLayouts, dailySheetInfos);
     await fillSummarySheet(zip);
+    await embedSummaryHeadSignature(zip);
     await updateWorkbookPrintAreas(zip, dailyLayouts, dailySheetInfos);
     await removeCalculationChain(zip);
     const blob = await zip.generateAsync({
@@ -1696,16 +1712,81 @@ async function embedInspectorSignatures(zip, dailyLayouts, dailySheetInfos) {
   zip.file(contentTypesContext.file, serializeXml(contentTypesContext.doc));
 }
 
-function buildInspectorSignatureDrawingXml(signature, layout, imageRelId) {
-  const maxWidthEmu = 1_200_000;
-  const maxHeightEmu = 430_000;
+function buildInspectorSignatureDrawingXml(signature, layout, imageRelId, options = {}) {
+  const maxWidthEmu = 1_600_000;
+  const maxHeightEmu = 500_000;
   const aspect = signature.width / signature.height;
   const cx = Math.min(maxWidthEmu, Math.round(maxHeightEmu * aspect));
   const cy = Math.round(cx / aspect);
   const spacerRow = Math.max(0, Number(layout?.signatureRow || 2) - 2);
+  const anchorCol = Math.max(0, Number(options.col ?? 8));
+  const colOffset = Math.max(0, Number(options.colOffset ?? 0));
+  const rowOffset = Math.max(0, Number(options.rowOffset ?? 30000));
   const imageName = `Inspector signature ${signature.file.replace(/\.png$/i, "")}`;
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<xdr:wsDr xmlns:xdr="${DRAWING_NS}" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${OFFICE_REL_NS}"><xdr:oneCellAnchor><xdr:from><xdr:col>8</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${spacerRow}</xdr:row><xdr:rowOff>30000</xdr:rowOff></xdr:from><xdr:ext cx="${cx}" cy="${cy}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="1" name="${imageName}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="${imageRelId}" cstate="print"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>`;
+<xdr:wsDr xmlns:xdr="${DRAWING_NS}" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${OFFICE_REL_NS}"><xdr:oneCellAnchor><xdr:from><xdr:col>${anchorCol}</xdr:col><xdr:colOff>${colOffset}</xdr:colOff><xdr:row>${spacerRow}</xdr:row><xdr:rowOff>${rowOffset}</xdr:rowOff></xdr:from><xdr:ext cx="${cx}" cy="${cy}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="1" name="${imageName}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="${imageRelId}" cstate="print"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>`;
+}
+
+async function embedSummaryHeadSignature(zip) {
+  const signature = getSummaryHeadSignature(getSummarySettings().head);
+  if (!signature) return;
+
+  const imageResponse = await fetch(`assets/signatures/${signature.file}?v=${SIGNATURE_ASSET_VERSION}`);
+  if (!imageResponse.ok) throw new Error(`Head signature image not found: ${signature.file}`);
+  zip.file("xl/media/summary-head-signature.png", await imageResponse.arrayBuffer());
+
+  const contentTypesContext = await loadXmlContext(zip, "[Content_Types].xml");
+  const contentTypesRoot = contentTypesContext.doc.documentElement;
+  const drawingFile = "xl/drawings/summary-head-signature.xml";
+  const drawingOverridePath = `/${drawingFile}`;
+  const hasDrawingOverride = Array.from(contentTypesRoot.children).some((node) =>
+    node.localName === "Override" && node.getAttribute("PartName") === drawingOverridePath,
+  );
+  if (!hasDrawingOverride) {
+    const override = contentTypesContext.doc.createElementNS(CONTENT_TYPES_NS, "Override");
+    override.setAttribute("PartName", drawingOverridePath);
+    override.setAttribute("ContentType", "application/vnd.openxmlformats-officedocument.drawing+xml");
+    contentTypesRoot.appendChild(override);
+  }
+
+  const worksheetContext = await loadXmlContext(zip, SUMMARY_SHEET_FILE);
+  const worksheetRelsFile = getWorksheetRelsFile(SUMMARY_SHEET_FILE);
+  const worksheetRelsContext = await loadXmlContext(zip, worksheetRelsFile);
+  const worksheetRelsRoot = worksheetRelsContext.doc.documentElement;
+  const drawingRelId = `rId${getNextRelationshipNumber(worksheetRelsRoot)}`;
+  const drawingRel = worksheetRelsContext.doc.createElementNS(PACKAGE_REL_NS, "Relationship");
+  drawingRel.setAttribute("Id", drawingRelId);
+  drawingRel.setAttribute("Type", DRAWING_REL_TYPE);
+  drawingRel.setAttribute("Target", "../drawings/summary-head-signature.xml");
+  worksheetRelsRoot.appendChild(drawingRel);
+
+  const drawingElement = worksheetContext.doc.createElementNS(MAIN_NS, "drawing");
+  if (!worksheetContext.doc.documentElement.getAttribute("xmlns:r")) {
+    worksheetContext.doc.documentElement.setAttribute("xmlns:r", OFFICE_REL_NS);
+  }
+  drawingElement.setAttributeNS(OFFICE_REL_NS, "r:id", drawingRelId);
+  const trailingSheetElements = new Set([
+    "legacyDrawing", "legacyDrawingHF", "picture", "oleObjects", "controls", "webPublishItems", "tableParts", "extLst",
+  ]);
+  const insertBefore = Array.from(worksheetContext.doc.documentElement.children)
+    .find((node) => trailingSheetElements.has(node.localName));
+  worksheetContext.doc.documentElement.insertBefore(drawingElement, insertBefore || null);
+
+  const imageRel = worksheetRelsContext.doc.implementation.createDocument(PACKAGE_REL_NS, "Relationships", null);
+  const imageRelRoot = imageRel.documentElement;
+  const imageRelationship = imageRel.createElementNS(PACKAGE_REL_NS, "Relationship");
+  imageRelationship.setAttribute("Id", "rId1");
+  imageRelationship.setAttribute("Type", IMAGE_REL_TYPE);
+  imageRelationship.setAttribute("Target", "../media/summary-head-signature.png");
+  imageRelRoot.appendChild(imageRelationship);
+
+  const signRow = Math.max(17, 8 + appData.inspectors.length + 5);
+  const drawingXml = buildInspectorSignatureDrawingXml(signature, { signatureRow: signRow - 3 }, "rId1", { col: 21, colOffset: 570000, rowOffset: 0 });
+  zip.file(drawingFile, drawingXml);
+  zip.file("xl/drawings/_rels/summary-head-signature.xml.rels", serializeXml(imageRel));
+  zip.file(worksheetContext.file, serializeXml(worksheetContext.doc));
+  zip.file(worksheetRelsFile, serializeXml(worksheetRelsContext.doc));
+  zip.file(contentTypesContext.file, serializeXml(contentTypesContext.doc));
 }
 
 function pickLayout(days) {
