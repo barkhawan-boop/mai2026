@@ -910,8 +910,10 @@ function renderStatCounts(inspector) {
 function renderActivities(inspector) {
   document.getElementById("activitiesBody").innerHTML = inspector.activities
     .map((activity, index) => {
-      const weekend = activity.isHoliday ? " class=\"weekend\"" : "";
-      return `<tr${weekend}>
+      const settings = getInspectorSettings(inspector);
+      const weekend = isWeekend(Number(settings.activityYear), Number(settings.month), index + 1);
+      const rowClasses = [weekend ? "weekend" : "", activity.isHoliday ? "holiday" : ""].filter(Boolean).join(" ");
+      return `<tr${rowClasses ? ` class=\"${rowClasses}\"` : ""}>
         <td>${escapeHtml(activity.day)}</td>
         <td>${escapeHtml(formatDisplayDate(activity.date))}</td>
         <td><input type="text" list="activityPresets" value="${escapeHtml(activity.activity)}" data-index="${index}"></td>

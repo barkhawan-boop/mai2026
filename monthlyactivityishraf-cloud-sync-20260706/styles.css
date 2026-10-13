@@ -494,7 +494,11 @@ tbody tr:nth-child(even) td {
 }
 
 .weekend td {
-  background: #fff7ed;
+  background: #fff4cc !important;
+}
+
+.holiday td {
+  background: #fff4cc !important;
 }
 
 .total-row td {
