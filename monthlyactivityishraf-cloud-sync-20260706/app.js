@@ -502,19 +502,11 @@ function bindEvents() {
   document.getElementById("mainSheet").addEventListener("input", (event) => updateMainPage(event, false));
   document.getElementById("mainSheet").addEventListener("change", (event) => updateMainPage(event, true));
   document.getElementById("mainSheet").addEventListener("click", handleMainPageClick);
-  document.getElementById("inspectorStudyYearInput").addEventListener("input", updateInspectorSettings);
-  document.getElementById("inspectorStudyYearInput").addEventListener("change", updateInspectorSettings);
   document.getElementById("inspectorActivityYearInput").addEventListener("change", updateInspectorSettings);
   document.getElementById("inspectorMonthInput").addEventListener("change", updateInspectorSettings);
   document.getElementById("inspectorSaveButton").addEventListener("click", saveCurrentInspector);
   document.getElementById("inspectorPrintButton").addEventListener("click", printCurrentInspector);
   document.getElementById("inspectorSendButton").addEventListener("click", sendCurrentReport);
-  document.getElementById("inspectorNameInput").addEventListener("input", () => updateInspectorBasics(false));
-  document.getElementById("inspectorNameInput").addEventListener("change", () => updateInspectorBasics(true));
-  document.getElementById("inspectorSeriesInput").addEventListener("input", () => updateInspectorBasics(false));
-  document.getElementById("inspectorSeriesInput").addEventListener("change", () => updateInspectorBasics(true));
-  document.getElementById("inspectorSchoolsInput").addEventListener("input", () => updateInspectorBasics(false));
-  document.getElementById("inspectorSchoolsInput").addEventListener("change", () => updateInspectorBasics(true));
   document.getElementById("schoolCounts").addEventListener("input", (event) => updateSchoolCount(event, false));
   document.getElementById("schoolCounts").addEventListener("change", (event) => updateSchoolCount(event, true));
   document.getElementById("statCounts").addEventListener("input", (event) => updateStatCount(event, false));
@@ -592,12 +584,8 @@ function renderInspector() {
   document.getElementById("inspectorTitle").textContent = inspector.name;
   renderInspectorSendButton(inspector);
   document.getElementById("inspectorMeta").textContent = `مانگی ${settings.month} / ${settings.studyYear}`;
-  document.getElementById("inspectorStudyYearInput").value = settings.studyYear;
   document.getElementById("inspectorActivityYearInput").value = settings.activityYear;
   renderMonthOptions(document.getElementById("inspectorMonthInput"), settings.month);
-  document.getElementById("inspectorNameInput").value = inspector.name;
-  document.getElementById("inspectorSeriesInput").value = inspector.series;
-  document.getElementById("inspectorSchoolsInput").value = inspector.schoolsCount;
   renderSchoolCounts(inspector);
   renderStatCounts(inspector);
   renderActivities(inspector);
@@ -922,16 +910,6 @@ function renderActivities(inspector) {
     .join("");
 }
 
-function updateInspectorBasics(shouldRender = true) {
-  const inspector = getCurrentInspector();
-  if (!inspector) return;
-  inspector.name = document.getElementById("inspectorNameInput").value;
-  inspector.series = document.getElementById("inspectorSeriesInput").value;
-  inspector.schoolsCount = numberOrZero(document.getElementById("inspectorSchoolsInput").value);
-  saveData();
-  if (shouldRender) render();
-}
-
 function persistVisibleActivityInputs(inspector, settings = getInspectorSettings(inspector)) {
   const inspectorPanel = document.getElementById("inspectorPanel");
   if (!inspector || !inspectorPanel || inspectorPanel.hidden || inspector.id !== currentInspectorId) return;
@@ -950,7 +928,7 @@ function readInspectorSettingsFromFields(inspector) {
   const next = normalizeSettings(
     {
       specialty: previous.specialty,
-      studyYear: document.getElementById("inspectorStudyYearInput").value.trim(),
+      studyYear: appData.global.studyYear,
       activityYear: document.getElementById("inspectorActivityYearInput").value || String(new Date().getFullYear()),
       month: Number(document.getElementById("inspectorMonthInput").value),
       head: appData.global.head || previous.head,
@@ -1020,9 +998,6 @@ function persistVisibleEdits() {
   if (inspectorPanel && !inspectorPanel.hidden) {
     const inspector = getCurrentInspector();
     if (!inspector) return;
-    inspector.name = document.getElementById("inspectorNameInput")?.value ?? inspector.name;
-    inspector.series = document.getElementById("inspectorSeriesInput")?.value ?? inspector.series;
-    inspector.schoolsCount = numberOrZero(document.getElementById("inspectorSchoolsInput")?.value ?? inspector.schoolsCount);
     persistVisibleActivityInputs(inspector);
     readInspectorSettingsFromFields(inspector);
     document.querySelectorAll("#schoolCounts input").forEach((input) => {
