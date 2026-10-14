@@ -1226,9 +1226,9 @@ function buildDailyPrintPage(inspector, index) {
   const rows = [];
   for (let day = 1; day <= layout.capacity; day += 1) {
     const activity = inspector.activities[day - 1];
-    rows.push(`<tr class="green">
-      <td class="rtl">${activity ? escapeHtml(activity.day) : "&nbsp;"}</td>
-      <td class="ltr">${activity ? escapeHtml(formatDisplayDate(activity.date)) : "&nbsp;"}</td>
+    rows.push(`<tr class="green day-row">
+      <td class="rtl weekday-cell">${activity ? escapeHtml(activity.day) : "&nbsp;"}</td>
+      <td class="ltr date-cell">${activity ? escapeHtml(formatDisplayDate(activity.date)) : "&nbsp;"}</td>
       <td colspan="10" class="rtl activity-text">${activity ? escapeHtml(activity.activity) : "&nbsp;"}</td>
     </tr>`);
   }
@@ -1267,9 +1267,9 @@ function buildDailyPrintPage(inspector, index) {
           <td colspan="2" class="ltr meta-value">${escapeHtml(inspector.series)}</td>
           <td colspan="2">&nbsp;</td>
         </tr>
-        <tr class="green">
-          <th class="rtl">ڕۆژ</th>
-          <th class="rtl">ڕێکەوت</th>
+        <tr class="green day-header">
+          <th class="rtl weekday-cell">ڕۆژ</th>
+          <th class="rtl date-cell">ڕێکەوت</th>
           <th colspan="10" class="rtl">کورتەی کارو چالاکی ئەنجامدراو</th>
         </tr>
         ${rows.join("")}

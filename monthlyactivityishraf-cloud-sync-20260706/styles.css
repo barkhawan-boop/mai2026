@@ -983,6 +983,16 @@ textarea::placeholder {
     background: #fff;
   }
 
+  .excel-daily .day-header > .weekday-cell,
+  .excel-daily .day-row > .weekday-cell {
+    border-left-style: hidden;
+  }
+
+  .excel-daily .day-header > .date-cell,
+  .excel-daily .day-row > .date-cell {
+    border-right-style: hidden;
+  }
+
   .excel-daily .activity-text {
     font-size: 8.82pt;
   }
