@@ -688,7 +688,7 @@ async function initBossPortal() {
         <button class="button primary" id="bossExcelExport" type="button">دابەزاندنی Excel</button>
       </div>
     </header>
-    <section class="boss-list-panel"><div class="boss-list-heading"><h2>سەرپەرشتیاران</h2><span id="bossPeriod"></span></div><div id="bossInspectorList" class="boss-inspector-list" aria-live="polite"></div></section>`;
+    <section class="boss-list-panel"><div class="boss-list-heading"><h2>سەرپەرشتیاران</h2><span id="bossPeriod"></span></div><p id="bossPrintHelp" class="boss-print-help" role="status" aria-live="polite"></p><div id="bossInspectorList" class="boss-inspector-list" aria-live="polite"></div></section>`;
   document.body.insertBefore(boss, document.body.firstChild);
   const monthSelect = boss.querySelector("#bossMonth");
   const yearSelect = boss.querySelector("#bossYear");
@@ -754,17 +754,25 @@ async function refreshBossPortal() {
       printBossReports([Number(button.dataset.bossPrint)]);
     }));
     const printAll = document.getElementById("bossPrintAll");
-    printAll.disabled = sent.size === 0;
-    printAll.classList.toggle("ready", sent.size > 0);
-    const everyInspectorSent = data.inspectors.length > 0 && data.inspectors.every((inspector) => sent.has(Number(inspector.id)));
+    const sentCount = data.inspectors.filter((inspector) => sent.has(Number(inspector.id))).length;
+    const totalCount = data.inspectors.length;
+    printAll.disabled = sentCount === 0;
+    printAll.textContent = `چاپکردنی هەموو نێردراوەکان (${sentCount}/${totalCount})`;
+    printAll.classList.toggle("ready", sentCount > 0);
+    const everyInspectorSent = totalCount > 0 && sentCount === totalCount;
     const printSummary = document.getElementById("bossPrintSummary");
     printSummary.disabled = !everyInspectorSent;
     printSummary.classList.toggle("ready", everyInspectorSent);
+    printSummary.title = everyInspectorSent ? "" : `پوختە دوای ناردنی هەموو ڕاپۆرتەکان چالاک دەبێت (${sentCount}/${totalCount})`;
+    document.getElementById("bossPrintHelp").textContent = everyInspectorSent
+      ? `هەموو ${totalCount} ڕاپۆرت نێردراون؛ پوختە و ڕاپۆرتەکان بۆ چاپ ئامادەن.`
+      : `ئێستا ${sentCount} لە ${totalCount} ڕاپۆرت نێردراوە. چاپی پوختە پاش ناردنی هەموویان چالاک دەبێت؛ چاپی هەموو تەنها ڕاپۆرتە نێردراوەکان چاپ دەکات.`;
   } catch (error) {
     console.error("Boss portal refresh failed", error);
     list.innerHTML = `<p class="boss-message error">پەیوەندی بە داتای هاوبەش سەرکەوتوو نەبوو. دووبارە نوێی بکەرەوە.</p>`;
     document.getElementById("bossPrintAll").disabled = true;
     document.getElementById("bossPrintSummary").disabled = true;
+    document.getElementById("bossPrintHelp").textContent = "نەتوانرا دۆخی ڕاپۆرتەکان بپشکنرێت؛ دوای نوێکردنەوە دووبارە هەوڵ بدە.";
   }
 }
 

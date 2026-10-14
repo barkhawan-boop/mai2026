@@ -1233,7 +1233,8 @@ body.boss-mode > :not(.boss-portal):not(#printRoot):not(.toast) { display: none;
 .boss-inspector-list { display: grid; gap: 10px; }
 .boss-inspector-row { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
 .boss-inspector-name { font-size: 1.08rem; font-weight: 800; }
-.boss-print-one:disabled, #bossPrintAll:disabled { color: #555; background: #e8e8e8; border-color: #c8c8c8; cursor: not-allowed; opacity: 0.8; }
+.boss-print-one:disabled, #bossPrintAll:disabled, #bossPrintSummary:disabled { color: #555; background: #e8e8e8; border-color: #c8c8c8; cursor: not-allowed; opacity: 0.8; }
+.boss-print-help { margin: 0 0 12px; color: #333; font-size: 0.95rem; }
 .boss-message { margin: 8px 0; color: #000; }
 .boss-message.error { color: #9a2222; }
 @media (max-width: 640px) {
@@ -1261,7 +1262,8 @@ body.boss-mode > :not(.boss-portal):not(#printRoot):not(.toast) { display: none;
 .boss-inspector-list { display: grid; gap: 10px; }
 .boss-inspector-row { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
 .boss-inspector-name { font-size: 1.08rem; font-weight: 800; }
-.boss-print-one:disabled, #bossPrintAll:disabled { color: #555; background: #e8e8e8; border-color: #c8c8c8; cursor: not-allowed; opacity: 0.8; }
+.boss-print-one:disabled, #bossPrintAll:disabled, #bossPrintSummary:disabled { color: #555; background: #e8e8e8; border-color: #c8c8c8; cursor: not-allowed; opacity: 0.8; }
+.boss-print-help { margin: 0 0 12px; color: #333; font-size: 0.95rem; }
 .boss-message { margin: 8px 0; color: #000; }
 .boss-message.error { color: #9a2222; }
 
