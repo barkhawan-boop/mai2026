@@ -987,7 +987,7 @@ textarea::placeholder {
   .excel-daily .day-header > .weekday-cell,
   .excel-daily .day-row > .weekday-cell {
     border-left-style: hidden !important;
-    border-right-style: hidden !important;
+    border-right: 0.45pt solid #000 !important;
   }
 
   .excel-daily .day-header > .date-cell,
