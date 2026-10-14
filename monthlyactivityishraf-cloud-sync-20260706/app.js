@@ -493,6 +493,13 @@ function renderMonthOptions(select, selectedValue) {
   select.value = String(selectedValue);
 }
 
+function renderActivityYearOptions(select, selectedValue) {
+  select.innerHTML = Array.from({ length: 31 }, (_, index) => 2020 + index)
+    .map((year) => `<option value="${year}">${year}</option>`)
+    .join("");
+  select.value = String(selectedValue);
+}
+
 function bindEvents() {
   document.getElementById("excelButton").addEventListener("click", generateWorkbook);
   document.getElementById("printButton").addEventListener("click", printAllSheets);
@@ -584,7 +591,7 @@ function renderInspector() {
   document.getElementById("inspectorTitle").textContent = inspector.name;
   renderInspectorSendButton(inspector);
   document.getElementById("inspectorMeta").textContent = `مانگی ${settings.month} / ${settings.studyYear}`;
-  document.getElementById("inspectorActivityYearInput").value = settings.activityYear;
+  renderActivityYearOptions(document.getElementById("inspectorActivityYearInput"), settings.activityYear);
   renderMonthOptions(document.getElementById("inspectorMonthInput"), settings.month);
   renderSchoolCounts(inspector);
   renderStatCounts(inspector);
