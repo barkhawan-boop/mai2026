@@ -907,6 +907,7 @@ textarea::placeholder {
 
   .daily-frame-right {
     right: 0;
+    display: none !important;
   }
 
   .daily-frame-top,
