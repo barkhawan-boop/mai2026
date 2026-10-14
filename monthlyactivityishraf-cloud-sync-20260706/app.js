@@ -1242,18 +1242,18 @@ function buildDailyPrintPage(inspector, index) {
     <div class="daily-print-frame">
     <table class="excel-sheet excel-daily">
       <colgroup>
-        <col style="width: 11.4373%">
-        <col style="width: 12.9498%">
+        <col style="width: 4.8932%">
         <col style="width: 6.3859%">
-        <col style="width: 6.6133%">
-        <col style="width: 6.3859%">
-        <col style="width: 21.0162%">
-        <col style="width: 7.3745%">
         <col style="width: 6.3859%">
         <col style="width: 3.7861%">
         <col style="width: 6.3859%">
+        <col style="width: 7.3745%">
+        <col style="width: 21.0162%">
         <col style="width: 6.3859%">
-        <col style="width: 4.8932%">
+        <col style="width: 6.6133%">
+        <col style="width: 6.3859%">
+        <col style="width: 12.9498%">
+        <col style="width: 11.4373%">
       </colgroup>
       <tbody>
         <tr class="top-title"><td colspan="12" class="rtl">بەڕێوەبەرایەتی دڵنیایی جۆری و سەرپەرشتیکردنی پەروەردەیی هەولێر</td></tr>
