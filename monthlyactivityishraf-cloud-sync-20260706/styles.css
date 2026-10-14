@@ -959,11 +959,23 @@ textarea::placeholder {
   }
 
   .excel-daily .top-title .study-year-value {
-    direction: ltr;
+    direction: rtl;
     unicode-bidi: isolate;
+    text-align: center;
+    white-space: nowrap;
     font-size: 8.82pt;
     letter-spacing: 0;
     padding-inline: 0.2mm;
+  }
+
+  .excel-daily .top-title .study-year-value > span {
+    display: inline-block;
+    margin-inline: 0.6mm;
+  }
+
+  .excel-daily .top-title .study-year-value .ltr {
+    direction: ltr;
+    unicode-bidi: isolate;
   }
 
   .excel-daily .green td,
@@ -1045,16 +1057,6 @@ textarea::placeholder {
   .excel-daily .signature .stamp {
     background: #fff;
     color: transparent;
-  }
-
-  .excel-daily tr > :last-child {
-    background-color: #fff;
-    background-image: linear-gradient(#000, #000);
-    background-origin: border-box;
-    background-clip: border-box;
-    background-position: left top;
-    background-repeat: no-repeat;
-    background-size: 0.75pt 100%;
   }
 
   .excel-summary {

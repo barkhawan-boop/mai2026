@@ -1235,18 +1235,18 @@ function buildDailyPrintPage(inspector, index) {
     <div class="daily-print-frame">
     <table class="excel-sheet excel-daily">
       <colgroup>
-        <col style="width: 11.57%">
-        <col style="width: 13.10%">
-        <col style="width: 6.46%">
-        <col style="width: 6.69%">
-        <col style="width: 6.46%">
-        <col style="width: 21.26%">
-        <col style="width: 7.46%">
-        <col style="width: 6.46%">
-        <col style="width: 3.83%">
-        <col style="width: 6.46%">
-        <col style="width: 6.46%">
-        <col style="width: 4.95%">
+        <col style="width: 11.4373%">
+        <col style="width: 12.9498%">
+        <col style="width: 6.3859%">
+        <col style="width: 6.6133%">
+        <col style="width: 6.3859%">
+        <col style="width: 21.0162%">
+        <col style="width: 7.3745%">
+        <col style="width: 6.3859%">
+        <col style="width: 3.7861%">
+        <col style="width: 6.3859%">
+        <col style="width: 6.3859%">
+        <col style="width: 4.8932%">
       </colgroup>
       <tbody>
         <tr class="top-title"><td colspan="12" class="rtl">بەڕێوەبەرایەتی دڵنیایی جۆری و سەرپەرشتیکردنی پەروەردەیی هەولێر</td></tr>
@@ -1254,8 +1254,7 @@ function buildDailyPrintPage(inspector, index) {
         <tr class="top-title">
           <td class="rtl">مانگی </td>
           <td class="ltr meta-value">${escapeHtml(month)}</td>
-          <td class="rtl">ساڵی </td>
-          <td class="ltr meta-value study-year-value">${escapeHtml(settings.studyYear)}</td>
+          <td colspan="2" class="study-year-value"><span class="rtl">ساڵی</span><span class="ltr">${escapeHtml(settings.studyYear)}</span></td>
           <td colspan="3" class="rtl">خشتەی کارو چالاکی مانگانە</td>
           <td class="rtl">زنجیرە</td>
           <td colspan="2" class="ltr meta-value">${escapeHtml(inspector.series)}</td>
