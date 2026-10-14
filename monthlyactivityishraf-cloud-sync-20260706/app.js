@@ -680,7 +680,7 @@ async function initBossPortal() {
     <header class="boss-header">
       <div><h1>کاری مانگانەی سەرپەرشتیاران</h1><p>ڕاپۆرتە نێردراوەکان ئامادەن بۆ چاپکردن.</p></div>
       <div class="boss-actions">
-        <label>ساڵ <input id="bossYear" type="number" min="2000" max="2100" value="${escapeHtml(period.activityYear)}"></label>
+        <label>ساڵ <select id="bossYear"></select></label>
         <label>مانگ <select id="bossMonth"></select></label>
         <button class="button ghost" id="bossRefresh" type="button">نوێکردنەوە</button>
         <button class="button print" id="bossPrintAll" type="button" disabled>چاپکردنی هەموو نێردراوەکان</button>
@@ -691,9 +691,11 @@ async function initBossPortal() {
     <section class="boss-list-panel"><div class="boss-list-heading"><h2>سەرپەرشتیاران</h2><span id="bossPeriod"></span></div><div id="bossInspectorList" class="boss-inspector-list" aria-live="polite"></div></section>`;
   document.body.insertBefore(boss, document.body.firstChild);
   const monthSelect = boss.querySelector("#bossMonth");
+  const yearSelect = boss.querySelector("#bossYear");
+  renderActivityYearOptions(yearSelect, period.activityYear);
   renderMonthOptions(monthSelect, period.month);
   boss.querySelector("#bossRefresh").addEventListener("click", refreshBossPortal);
-  boss.querySelector("#bossYear").addEventListener("change", refreshBossPortal);
+  yearSelect.addEventListener("change", refreshBossPortal);
   monthSelect.addEventListener("change", refreshBossPortal);
   boss.querySelector("#bossPrintAll").addEventListener("click", () => printBossReports());
   boss.querySelector("#bossPrintSummary").addEventListener("click", printBossSummary);
@@ -717,7 +719,7 @@ async function initBossPortal() {
 function getBossPeriod() {
   const year = Number(document.getElementById("bossYear").value);
   const month = Number(document.getElementById("bossMonth").value);
-  if (!Number.isInteger(year) || year < 2000 || year > 2100 || !Number.isInteger(month) || month < 1 || month > 12) {
+  if (!Number.isInteger(year) || year < 2020 || year > 2050 || !Number.isInteger(month) || month < 1 || month > 12) {
     throw new Error("Invalid report period");
   }
   return { year, month };
