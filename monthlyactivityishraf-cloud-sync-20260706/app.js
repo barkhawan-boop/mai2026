@@ -2766,8 +2766,11 @@ async function saveNoteDocument(event) {
   const form = event.currentTarget;
   const submitButton = document.getElementById("noteSaveButton");
   const values = getNoteFormValues();
-  const dateSuffix = values.date || new Date().toISOString().slice(0, 10);
-  const filename = `یاداشت-${dateSuffix}.docx`;
+  const safeSubject = String(values.subject || "").trim()
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
+    .replace(/[. ]+$/g, "")
+    .slice(0, 120);
+  const filename = `${safeSubject || "یاداشت"}.docx`;
   let saveHandlePromise = null;
 
   if (typeof window.showSaveFilePicker === "function") {
