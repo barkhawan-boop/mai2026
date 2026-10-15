@@ -2751,7 +2751,6 @@ function printNoteForm() {
       <div class="note-print-recipient"><strong>بۆ /</strong> ${escapeNoteHtml(values.recipient)}</div>
       <h2 class="note-print-subject">بابەت / ${escapeNoteHtml(values.subject)}</h2>
       <div class="note-print-body">${body}</div>
-      <p class="note-print-closing">، لەگەل ڕێزدا</p>
       <footer class="note-print-signature">
         <strong>ناوی سەرپەرشتیار: ${escapeNoteHtml(values.sender)}</strong>
         <span>${escapeNoteHtml(values.role)}</span>

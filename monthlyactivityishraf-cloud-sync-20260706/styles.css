@@ -920,11 +920,10 @@ textarea::placeholder {
   .note-print-header p { margin: 0; padding: 4mm 3mm; font-size: 12pt; }
   .note-print-header p { border-top: 1px solid #000; }
   .note-print-meta { display: flex; justify-content: space-between; gap: 8mm; padding: 4mm 2mm; }
-  .note-print-recipient { margin: 7mm 0 4mm; }
-  .note-print-subject { margin: 0 0 5mm; font-size: 12pt; }
-  .note-print-body { min-height: 115mm; white-space: normal; overflow-wrap: anywhere; }
-  .note-print-closing { margin: 4mm 0; }
-  .note-print-signature { display: grid; gap: 1mm; margin-top: 10mm; }
+  .note-print-recipient { margin: 7mm auto 4mm; text-align: center; }
+  .note-print-subject { margin: 0 0 5mm; font-size: 12pt; text-align: center; }
+  .note-print-body { min-height: 115mm; white-space: normal; overflow-wrap: anywhere; text-align: center; }
+  .note-print-signature { display: grid; justify-items: start; gap: 1mm; margin-top: 10mm; direction: ltr; text-align: left; }
 
   .print-page {
     page: inspector;
