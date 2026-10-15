@@ -2781,18 +2781,35 @@ function printNoteForm() {
         <span>ژمارەی مۆبایل: ${escapeNoteHtml(values.phone)}</span>
       </footer>
     </article>`;
-  const originalTitle = document.title;
   const pdfFilename = String(values.subject || "").trim()
     .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
     .replace(/[. ]+$/g, "")
     .slice(0, 120) || "یاداشت";
-  const restoreTitle = () => {
-    document.title = originalTitle;
-    window.removeEventListener("afterprint", restoreTitle);
-  };
-  document.title = pdfFilename;
-  window.addEventListener("afterprint", restoreTitle);
-  window.print();
+  const printWindow = window.open("", "_blank", "popup,width=1000,height=800");
+  if (!printWindow) {
+    showToast("بۆ ناوی پەڕگەی PDF، ڕێگە بە پەنجەرەی چاپ بدە.");
+    return;
+  }
+
+  const printReady = new Promise((resolve) => printWindow.addEventListener("load", resolve, { once: true }));
+  const printDocument = printWindow.document;
+  printDocument.open();
+  printDocument.write(`<!doctype html>
+    <html lang="ckb" dir="rtl">
+      <head>
+        <meta charset="utf-8">
+        <title>${escapeNoteHtml(pdfFilename)}</title>
+        <link rel="stylesheet" href="${new URL("styles.css?v=note-form-20261015l", window.location.href).href}">
+      </head>
+      <body><div class="print-root">${document.getElementById("printRoot").innerHTML}</div></body>
+    </html>`);
+  printDocument.close();
+  printWindow.addEventListener("afterprint", () => printWindow.close(), { once: true });
+  printReady.then(async () => {
+    await printDocument.fonts.ready;
+    printWindow.focus();
+    printWindow.print();
+  });
 }
 
 async function saveNoteDocument(event) {
