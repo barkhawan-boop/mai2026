@@ -2781,6 +2781,17 @@ function printNoteForm() {
         <span>ژمارەی مۆبایل: ${escapeNoteHtml(values.phone)}</span>
       </footer>
     </article>`;
+  const originalTitle = document.title;
+  const pdfFilename = String(values.subject || "").trim()
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
+    .replace(/[. ]+$/g, "")
+    .slice(0, 120) || "یاداشت";
+  const restoreTitle = () => {
+    document.title = originalTitle;
+    window.removeEventListener("afterprint", restoreTitle);
+  };
+  document.title = pdfFilename;
+  window.addEventListener("afterprint", restoreTitle);
   window.print();
 }
 
