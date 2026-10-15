@@ -917,7 +917,7 @@ textarea::placeholder {
 
   .note-print-header { border-bottom: 1px solid #000; text-align: right; }
   .note-print-header h1,
-  .note-print-header p { margin: 0; padding: 4mm 3mm; font-size: 12pt; }
+  .note-print-header p { margin: 0; padding: 1mm 3mm; font-size: 12pt; line-height: 1.3; }
   .note-print-meta { display: flex; justify-content: space-between; gap: 8mm; padding: 4mm 2mm; }
   .note-print-recipient { margin: 7mm auto 4mm; text-align: center; }
   .note-print-subject { margin: 0 0 5mm; font-size: 12pt; text-align: center; }
