@@ -923,6 +923,7 @@ textarea::placeholder {
   .note-print-subject { margin: 0 0 5mm; font-size: 12pt; text-align: center; }
   .note-print-body { min-height: 115mm; white-space: normal; overflow-wrap: anywhere; direction: rtl; text-align: right; }
   .note-print-signature { display: grid; justify-items: start; gap: 1mm; margin-top: 10mm; direction: ltr; text-align: left; }
+  .note-print-signature > * { width: 60mm; transform: translateX(5mm); text-align: center; }
 
   .print-page {
     page: inspector;
