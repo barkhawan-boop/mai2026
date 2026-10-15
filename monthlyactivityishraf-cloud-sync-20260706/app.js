@@ -2595,7 +2595,7 @@ function openNoteForm() {
 }
 
 function renderNotePhoneOptions(selectedPhone = "") {
-  const phoneSelect = document.getElementById("notePhoneInput");
+  const phoneInput = document.getElementById("notePhoneInput");
   const phones = [...new Map(appData.inspectors
     .map((inspector) => ({
       name: String(inspector.name || "").trim(),
@@ -2603,15 +2603,18 @@ function renderNotePhoneOptions(selectedPhone = "") {
     }))
     .filter((inspector) => inspector.phone)
     .map((inspector) => [inspector.phone, inspector])).values()];
-  phoneSelect.innerHTML = `<option value=""></option>${phones
-    .map(({ name, phone }) => `<option value="${escapeHtml(phone)}">${escapeHtml(name ? `${phone} — ${name}` : phone)}</option>`)
-    .join("")}`;
-  phoneSelect.value = phones.some((inspector) => inspector.phone === selectedPhone) ? selectedPhone : "";
+  document.getElementById("notePhoneOptions").innerHTML = phones
+    .map(({ name, phone }) => `<option value="${escapeHtml(phone)}">${escapeHtml(name)}</option>`)
+    .join("");
+  if (selectedPhone) phoneInput.value = selectedPhone;
 }
 
 function syncNotePhoneToSender() {
   const senderName = document.getElementById("noteSenderInput").value.trim();
-  const inspector = appData.inspectors.find((item) => String(item.name || "").trim() === senderName);
+  const inspector = appData.inspectors.find((item) => {
+    const inspectorName = String(item.name || "").trim();
+    return inspectorName === senderName || inspectorName.startsWith(`${senderName} `) || senderName.startsWith(`${inspectorName} `);
+  });
   renderNotePhoneOptions(inspector ? String(inspector.phone || "").trim() : "");
 }
 
@@ -2623,7 +2626,7 @@ function arabicIndicDigits(value) {
   return String(value).replace(/[0-9]/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]);
 }
 
-function setWordParagraphText(paragraph, value) {
+function setWordParagraphText(paragraph, value, alignment = "") {
   const wordNs = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const paragraphProperties = Array.from(paragraph.children).find((child) => child.namespaceURI === wordNs && child.localName === "pPr");
   const firstRun = Array.from(paragraph.children).find((child) => child.namespaceURI === wordNs && child.localName === "r");
@@ -2642,6 +2645,20 @@ function setWordParagraphText(paragraph, value) {
   textNode.textContent = text;
   run.appendChild(textNode);
   paragraph.appendChild(run);
+  if (alignment) {
+    let properties = paragraphProperties;
+    if (!properties) {
+      properties = document.createElementNS(wordNs, "w:pPr");
+      paragraph.insertBefore(properties, run);
+    }
+    let justification = Array.from(properties.children).find((child) => child.namespaceURI === wordNs && child.localName === "jc");
+    if (!justification) {
+      justification = document.createElementNS(wordNs, "w:jc");
+      const runProps = Array.from(properties.children).find((child) => child.namespaceURI === wordNs && child.localName === "rPr");
+      properties.insertBefore(justification, runProps || null);
+    }
+    justification.setAttributeNS(wordNs, "w:val", alignment);
+  }
 }
 
 function replaceWordParagraphText(paragraph, search, replacement) {
@@ -2708,7 +2725,7 @@ async function buildNoteDocument(values) {
     body.insertBefore(extra, paragraphs[17]);
     bodyParagraphs.push(extra);
   }
-  bodyParagraphs.forEach((paragraph, index) => setWordParagraphText(paragraph, lines[index] || ""));
+  bodyParagraphs.forEach((paragraph, index) => setWordParagraphText(paragraph, lines[index] || "", "right"));
 
   const updatedXml = new XMLSerializer().serializeToString(parsed);
   const verified = new DOMParser().parseFromString(updatedXml, "application/xml");
@@ -2716,7 +2733,7 @@ async function buildNoteDocument(values) {
   const verifiedText = verified.getElementsByTagNameNS(wordNs, "t");
   const outputText = Array.from(verifiedText, (node) => node.textContent || "").join("");
   const bodyLines = values.body.replace(/\r\n?/g, "\n").split("\n").filter(Boolean);
-  if ([values.recipient, values.subject, values.sender].some((value) => value && !outputText.includes(value))
+  if ([values.recipient, values.subject, values.sender, values.role, values.phone].some((value) => value && !outputText.includes(value))
     || bodyLines.some((line) => !outputText.includes(line))) {
     throw new Error("ناوەڕۆکی فۆرم نەچووە ناو پەڕگەی Word.");
   }
