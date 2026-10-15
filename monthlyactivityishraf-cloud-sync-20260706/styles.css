@@ -915,11 +915,10 @@ textarea::placeholder {
     line-height: 1.8;
   }
 
-  .note-print-header { text-align: right; }
+  .note-print-header { border-bottom: 1px solid #000; text-align: right; }
   .note-print-header h1,
   .note-print-header p { margin: 0; padding: 4mm 3mm; font-size: 12pt; }
-  .note-print-meta { position: relative; display: flex; justify-content: space-between; gap: 8mm; padding: 4mm 2mm; }
-  .note-print-meta::after { position: absolute; top: 4mm; bottom: 4mm; left: 50%; border-left: 1px solid #000; content: ""; }
+  .note-print-meta { display: flex; justify-content: space-between; gap: 8mm; padding: 4mm 2mm; }
   .note-print-recipient { margin: 7mm auto 4mm; text-align: center; }
   .note-print-subject { margin: 0 0 5mm; font-size: 12pt; text-align: center; }
   .note-print-body { min-height: 115mm; white-space: normal; overflow-wrap: anywhere; direction: rtl; text-align: right; }
