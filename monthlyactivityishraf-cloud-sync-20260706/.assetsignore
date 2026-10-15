@@ -3,5 +3,7 @@ worker.js.map
 wrangler.toml
 README.md
 .assetsignore
+tmp-note-template
+tmp-note-template/**
 .wrangler/
 schema.sql

@@ -501,6 +501,10 @@ function renderActivityYearOptions(select, selectedValue) {
 }
 
 function bindEvents() {
+  document.getElementById("noteButton").addEventListener("click", openNoteForm);
+  document.getElementById("noteCancelButton").addEventListener("click", closeNoteForm);
+  document.getElementById("noteCancelAction").addEventListener("click", closeNoteForm);
+  document.getElementById("noteForm").addEventListener("submit", saveNoteDocument);
   document.getElementById("excelButton").addEventListener("click", generateWorkbook);
   document.getElementById("printButton").addEventListener("click", printAllSheets);
   document.getElementById("printSummaryButton").addEventListener("click", printSummarySheet);
@@ -2556,6 +2560,168 @@ function downloadBlob(blob, filename) {
   anchor.click();
   anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function openNoteForm() {
+  const form = document.getElementById("noteForm");
+  const now = new Date();
+  const dateInput = document.getElementById("noteDateInput");
+  dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  document.getElementById("noteSenderInput").value = appData.global.head || "";
+  const recipients = document.getElementById("noteRecipients");
+  recipients.innerHTML = appData.inspectors
+    .map((inspector) => `<option value="${escapeHtml(inspector.name.trim())}"></option>`)
+    .join("");
+  form.reset();
+  dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  document.getElementById("noteSenderInput").value = appData.global.head || "";
+  document.getElementById("noteDialog").showModal();
+  document.getElementById("noteRecipientInput").focus();
+}
+
+function closeNoteForm() {
+  document.getElementById("noteDialog").close();
+}
+
+function arabicIndicDigits(value) {
+  return String(value).replace(/[0-9]/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]);
+}
+
+function setWordParagraphText(paragraph, value) {
+  const wordNs = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const firstRun = Array.from(paragraph.children).find((child) => child.namespaceURI === wordNs && child.localName === "r");
+  const runProperties = firstRun ? Array.from(firstRun.children).find((child) => child.namespaceURI === wordNs && child.localName === "rPr") : null;
+  const paragraphProperties = Array.from(paragraph.children).find((child) => child.namespaceURI === wordNs && child.localName === "pPr");
+  Array.from(paragraph.childNodes).forEach((child) => {
+    if (child !== paragraphProperties) paragraph.removeChild(child);
+  });
+  const text = String(value ?? "");
+  if (!text) return;
+  const document = paragraph.ownerDocument;
+  const run = document.createElementNS(wordNs, "w:r");
+  if (runProperties) run.appendChild(runProperties.cloneNode(true));
+  const textNode = document.createElementNS(wordNs, "w:t");
+  textNode.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space", "preserve");
+  textNode.textContent = text;
+  run.appendChild(textNode);
+  paragraph.appendChild(run);
+}
+
+function replaceWordParagraphText(paragraph, search, replacement) {
+  const wordNs = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const textNodes = Array.from(paragraph.getElementsByTagNameNS(wordNs, "t"));
+  const source = textNodes.map((node) => node.textContent || "").join("");
+  const start = source.indexOf(search);
+  if (start < 0) return false;
+  const end = start + search.length;
+  let offset = 0;
+  let inserted = false;
+  for (const node of textNodes) {
+    const text = node.textContent || "";
+    const nodeStart = offset;
+    const nodeEnd = offset + text.length;
+    if (nodeEnd <= start || nodeStart >= end) {
+      offset = nodeEnd;
+      continue;
+    }
+    const before = Math.max(0, start - nodeStart);
+    const after = Math.max(0, nodeEnd - end);
+    const prefix = text.slice(0, before);
+    const suffix = after ? text.slice(text.length - after) : "";
+    if (!inserted) {
+      node.textContent = `${prefix}${replacement}${suffix}`;
+      inserted = true;
+    } else {
+      node.textContent = suffix;
+    }
+    offset = nodeEnd;
+  }
+  return inserted;
+}
+
+async function buildNoteDocument(values) {
+  const response = await fetch("assets/letter-note-template.docx?v=note-form-20261015", { cache: "no-store" });
+  if (!response.ok) throw new Error("نووسراوی یاداشت نەدۆزرایەوە.");
+  const template = await response.blob();
+  const archive = await JSZip.loadAsync(template);
+  const documentFile = archive.file("word/document.xml");
+  if (!documentFile) throw new Error("ناوەڕۆکی Word ناتوانرێت بخوێندرێتەوە.");
+
+  const xml = await documentFile.async("text");
+  const parsed = new DOMParser().parseFromString(xml, "application/xml");
+  if (parsed.querySelector("parsererror")) throw new Error("فۆرماتی Word دروست نییە.");
+  const wordNs = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const body = parsed.getElementsByTagNameNS(wordNs, "body")[0];
+  const paragraphs = Array.from(body.children).filter((child) => child.namespaceURI === wordNs && child.localName === "p");
+  if (paragraphs.length < 21) throw new Error("قالبی یاداشت پەڕگەکە تەواو نییە.");
+
+  replaceWordParagraphText(paragraphs[0], "١", arabicIndicDigits(values.letterNumber));
+  const [year, month, day] = values.date.split("-");
+  replaceWordParagraphText(paragraphs[1], "٠٠/٠٠ / ٢٠٢٦", `${arabicIndicDigits(day)}/${arabicIndicDigits(month)} / ${arabicIndicDigits(year)}`);
+  setWordParagraphText(paragraphs[5], `بۆ / ${values.recipient}`);
+  setWordParagraphText(paragraphs[6], `بابەت / ${values.subject}`);
+  setWordParagraphText(paragraphs[17], `ناوی سەرپەرشتیار: ${values.sender}`);
+  setWordParagraphText(paragraphs[18], values.role || "سەرپەرشتيارى پەروەردەیی");
+  setWordParagraphText(paragraphs[19], `ژمارەی مۆبایل: ${values.phone}`);
+
+  const lines = values.body.replace(/\r\n?/g, "\n").split("\n");
+  const bodyParagraphs = paragraphs.slice(9, 17);
+  while (bodyParagraphs.length < lines.length) {
+    const extra = paragraphs[16].cloneNode(true);
+    body.insertBefore(extra, paragraphs[17]);
+    bodyParagraphs.push(extra);
+  }
+  bodyParagraphs.forEach((paragraph, index) => setWordParagraphText(paragraph, lines[index] || ""));
+
+  archive.file("word/document.xml", new XMLSerializer().serializeToString(parsed));
+  return archive.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+}
+
+async function saveNoteDocument(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const submitButton = document.getElementById("noteSaveButton");
+  const values = Object.fromEntries(new FormData(form).entries());
+  const dateSuffix = values.date || new Date().toISOString().slice(0, 10);
+  const filename = `یاداشت-${dateSuffix}.docx`;
+  let saveHandlePromise = null;
+
+  if (typeof window.showSaveFilePicker === "function") {
+    try {
+      saveHandlePromise = window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{
+          description: "Microsoft Word document",
+          accept: { "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"] },
+        }],
+      });
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      showToast("ناتوانرا شوێنی هەڵگرتن بکرێتەوە.");
+      return;
+    }
+  }
+
+  submitButton.disabled = true;
+  try {
+    const blob = await buildNoteDocument(values);
+    if (saveHandlePromise) {
+      const handle = await saveHandlePromise;
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+    } else {
+      downloadBlob(blob, filename);
+    }
+    closeNoteForm();
+    showToast(saveHandlePromise ? "فایلی Word هەڵگیرا." : "فایلی Word دابەزێنرا.");
+  } catch (error) {
+    if (error?.name === "AbortError") return;
+    console.error("Note document export failed:", error);
+    showToast(error?.message || "دروستکردنی فایلی Word سەرکەوتوو نەبوو.");
+  } finally {
+    submitButton.disabled = false;
+  }
 }
 
 function formatDisplayDate(isoDate) {

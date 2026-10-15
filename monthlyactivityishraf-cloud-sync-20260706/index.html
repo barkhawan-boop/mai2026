@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>کاری مانگانەی سەرپەرشتیارانی پەروەردەیی</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="styles.css?v=boss-print-button-state-20261014">
+  <link rel="stylesheet" href="styles.css?v=note-form-20261015">
   <script src="assets/vendor/jszip.min.js"></script>
 </head>
 <body>
@@ -15,6 +15,7 @@
       <p>خشتەی چاڵاکی ڕۆژانە و پوختەی مانگانە</p>
     </div>
     <div class="actions">
+      <button type="button" class="button primary" id="noteButton">یاداشت</button>
       <button type="button" class="button ghost" id="printSummaryButton">چاپکردنی پوختە</button>
       <button type="button" class="button print" id="printButton">چاپکردنی هەموو</button>
       <button type="button" class="button primary" id="excelButton">دابەزاندنی Excel</button>
@@ -123,7 +124,60 @@
     <option value="لێژنەی هەڵسەنگاندنی دەرەکی: "></option>
   </datalist>
 
+  <dialog class="note-dialog" id="noteDialog" aria-labelledby="noteDialogTitle">
+    <form id="noteForm" class="note-form">
+      <div class="note-dialog-heading">
+        <div>
+          <h2 id="noteDialogTitle">یاداشت</h2>
+          <p>زانیارییەکان پڕ بکەرەوە و پاشان شوێنی هەڵگرتنی پەڕگەی Word هەڵبژێرە.</p>
+        </div>
+        <button type="button" class="button ghost note-close" id="noteCancelButton" aria-label="داخستن">×</button>
+      </div>
+
+      <div class="note-fields">
+        <label>
+          <span>ژمارە</span>
+          <input id="noteNumberInput" name="letterNumber" type="text" value="١" autocomplete="off">
+        </label>
+        <label>
+          <span>ڕێکەوت</span>
+          <input id="noteDateInput" name="date" type="date" required>
+        </label>
+        <label class="note-wide">
+          <span>بۆ</span>
+          <input id="noteRecipientInput" name="recipient" type="text" list="noteRecipients" value="سەرپەرشتیارى یه‌كه‌م" required autocomplete="off">
+          <datalist id="noteRecipients"></datalist>
+        </label>
+        <label class="note-wide">
+          <span>بابەت</span>
+          <input id="noteSubjectInput" name="subject" type="text" required autocomplete="off">
+        </label>
+        <label class="note-wide">
+          <span>ناوەڕۆک</span>
+          <textarea id="noteBodyInput" name="body" rows="8" required></textarea>
+        </label>
+        <label>
+          <span>ناوی سەرپەرشتیار</span>
+          <input id="noteSenderInput" name="sender" type="text" required autocomplete="off">
+        </label>
+        <label>
+          <span>پلە</span>
+          <input id="noteRoleInput" name="role" type="text" value="سەرپەرشتيارى پەروەردەیی" autocomplete="off">
+        </label>
+        <label class="note-wide">
+          <span>ژمارەی مۆبایل</span>
+          <input id="notePhoneInput" name="phone" type="tel" autocomplete="off">
+        </label>
+      </div>
+
+      <div class="note-dialog-actions">
+        <button type="button" class="button ghost" id="noteCancelAction">پاشگەزبوونەوە</button>
+        <button type="submit" class="button primary" id="noteSaveButton">هەڵگرتنی Word</button>
+      </div>
+    </form>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=boss-print-button-state-20261014"></script>
+  <script src="app.js?v=note-form-20261015"></script>
 </body>
 </html>
