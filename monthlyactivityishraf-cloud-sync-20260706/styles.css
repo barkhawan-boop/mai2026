@@ -867,6 +867,11 @@ textarea::placeholder {
     margin: 19.05mm 17.78mm;
   }
 
+  @page note {
+    size: A4 portrait;
+    margin: 19.05mm 17.78mm;
+  }
+
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -893,6 +898,29 @@ textarea::placeholder {
     background: #fff;
     font-family: "Sarchia-Baran", "Noto Naskh Arabic", Tahoma, Arial, sans-serif;
   }
+
+  .note-dialog { display: none !important; }
+
+  .note-print-page {
+    page: note;
+    min-height: 257mm;
+    padding: 0;
+    color: #000;
+    font-family: "Sarchia-Baran", "Noto Naskh Arabic", Tahoma, Arial, sans-serif;
+    font-size: 12pt;
+    line-height: 1.8;
+  }
+
+  .note-print-header { border: 1px solid #000; text-align: right; }
+  .note-print-header h1,
+  .note-print-header p { margin: 0; padding: 4mm 3mm; font-size: 12pt; }
+  .note-print-header p { border-top: 1px solid #000; }
+  .note-print-meta { display: flex; justify-content: space-between; gap: 8mm; padding: 4mm 2mm; }
+  .note-print-recipient { margin: 7mm 0 4mm; }
+  .note-print-subject { margin: 0 0 5mm; font-size: 12pt; }
+  .note-print-body { min-height: 115mm; white-space: normal; overflow-wrap: anywhere; }
+  .note-print-closing { margin: 4mm 0; }
+  .note-print-signature { display: grid; gap: 1mm; margin-top: 10mm; }
 
   .print-page {
     page: inspector;

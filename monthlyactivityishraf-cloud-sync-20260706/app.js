@@ -504,6 +504,7 @@ function bindEvents() {
   document.getElementById("noteButton").addEventListener("click", openNoteForm);
   document.getElementById("noteCancelButton").addEventListener("click", closeNoteForm);
   document.getElementById("noteCancelAction").addEventListener("click", closeNoteForm);
+  document.getElementById("notePrintButton").addEventListener("click", printNoteForm);
   document.getElementById("noteForm").addEventListener("submit", saveNoteDocument);
   document.getElementById("excelButton").addEventListener("click", generateWorkbook);
   document.getElementById("printButton").addEventListener("click", printAllSheets);
@@ -2567,14 +2568,21 @@ function openNoteForm() {
   const now = new Date();
   const dateInput = document.getElementById("noteDateInput");
   dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  document.getElementById("noteSenderInput").value = appData.global.head || "";
   const recipients = document.getElementById("noteRecipients");
   recipients.innerHTML = appData.inspectors
     .map((inspector) => `<option value="${escapeHtml(inspector.name.trim())}"></option>`)
     .join("");
   form.reset();
   dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  document.getElementById("noteSenderInput").value = appData.global.head || "";
+  const sender = document.getElementById("noteSenderInput");
+  const senderNames = [...new Set([
+    appData.global.head || "",
+    ...appData.inspectors.map((inspector) => inspector.name.trim()),
+  ].filter(Boolean))];
+  sender.innerHTML = senderNames
+    .map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+    .join("");
+  sender.value = senderNames.includes(appData.global.head) ? appData.global.head : (senderNames[0] || "");
   document.getElementById("noteDialog").showModal();
   document.getElementById("noteRecipientInput").focus();
 }
@@ -2673,15 +2681,62 @@ async function buildNoteDocument(values) {
   }
   bodyParagraphs.forEach((paragraph, index) => setWordParagraphText(paragraph, lines[index] || ""));
 
-  archive.file("word/document.xml", new XMLSerializer().serializeToString(parsed));
+  const updatedXml = new XMLSerializer().serializeToString(parsed);
+  const verified = new DOMParser().parseFromString(updatedXml, "application/xml");
+  if (verified.querySelector("parsererror")) throw new Error("نووسراوی Word در کاتی نوێکردنەوە تێکچوو.");
+  const verifiedText = verified.getElementsByTagNameNS(wordNs, "t");
+  const outputText = Array.from(verifiedText, (node) => node.textContent || "").join("");
+  const bodyLines = values.body.replace(/\r\n?/g, "\n").split("\n").filter(Boolean);
+  if ([values.recipient, values.subject, values.sender].some((value) => value && !outputText.includes(value))
+    || bodyLines.some((line) => !outputText.includes(line))) {
+    throw new Error("ناوەڕۆکی فۆرم نەچووە ناو پەڕگەی Word.");
+  }
+  archive.file("word/document.xml", updatedXml);
   return archive.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+}
+
+function getNoteFormValues() {
+  return Object.fromEntries(new FormData(document.getElementById("noteForm")).entries());
+}
+
+function escapeNoteHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]);
+}
+
+function printNoteForm() {
+  const form = document.getElementById("noteForm");
+  if (!form.reportValidity()) return;
+  const values = getNoteFormValues();
+  const date = values.date ? new Date(`${values.date}T00:00:00`) : new Date();
+  const formattedDate = `${arabicIndicDigits(String(date.getDate()).padStart(2, "0"))}/${arabicIndicDigits(String(date.getMonth() + 1).padStart(2, "0"))} / ${arabicIndicDigits(date.getFullYear())}`;
+  const body = escapeNoteHtml(values.body).replace(/\r\n?|\n/g, "<br>");
+  document.getElementById("printRoot").innerHTML = `
+    <article class="note-print-page" dir="rtl" lang="ckb">
+      <header class="note-print-header">
+        <h1>بەڕێوەبەرايەتى دڵنیایی جۆری و سەرپەرشتيكردنى پەروەردەيى - هەولێر</h1>
+        <p>یەكەى دڵنیایی جۆری و سەرپەرشتيكردنى پەروەردەيى ناوەند - هەولێر</p>
+      </header>
+      <div class="note-print-meta"><strong>ژمارە: ${escapeNoteHtml(arabicIndicDigits(values.letterNumber))}</strong><span>ڕێکەوت: ${escapeNoteHtml(formattedDate)}</span></div>
+      <div class="note-print-recipient"><strong>بۆ /</strong> ${escapeNoteHtml(values.recipient)}</div>
+      <h2 class="note-print-subject">بابەت / ${escapeNoteHtml(values.subject)}</h2>
+      <div class="note-print-body">${body}</div>
+      <p class="note-print-closing">، لەگەل ڕێزدا</p>
+      <footer class="note-print-signature">
+        <strong>ناوی سەرپەرشتیار: ${escapeNoteHtml(values.sender)}</strong>
+        <span>${escapeNoteHtml(values.role)}</span>
+        <span>ژمارەی مۆبایل: ${escapeNoteHtml(values.phone)}</span>
+      </footer>
+    </article>`;
+  window.print();
 }
 
 async function saveNoteDocument(event) {
   event.preventDefault();
   const form = event.currentTarget;
   const submitButton = document.getElementById("noteSaveButton");
-  const values = Object.fromEntries(new FormData(form).entries());
+  const values = getNoteFormValues();
   const dateSuffix = values.date || new Date().toISOString().slice(0, 10);
   const filename = `یاداشت-${dateSuffix}.docx`;
   let saveHandlePromise = null;
