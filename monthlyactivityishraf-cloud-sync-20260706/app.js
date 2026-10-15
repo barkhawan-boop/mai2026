@@ -233,6 +233,7 @@ function normalizeData(data) {
     }
     usedIds.add(Number(inspector.id));
     inspector.name ||= fallback.name || `سەرپەرشتیاری نوێ ${index + 1}`;
+    inspector.phone = String(inspector.phone || fallback.phone || "").trim();
     inspector.series ||= String(100 + index);
     inspector.schoolsCount = numberOrZero(inspector.schoolsCount);
     inspector.schoolsInCharge = normalizeTriple(inspector.schoolsInCharge);
@@ -506,6 +507,7 @@ function bindEvents() {
   document.getElementById("noteCancelAction").addEventListener("click", closeNoteForm);
   document.getElementById("notePrintButton").addEventListener("click", printNoteForm);
   document.getElementById("noteForm").addEventListener("submit", saveNoteDocument);
+  document.getElementById("noteSenderInput").addEventListener("change", syncNotePhoneToSender);
   document.getElementById("excelButton").addEventListener("click", generateWorkbook);
   document.getElementById("printButton").addEventListener("click", printAllSheets);
   document.getElementById("printSummaryButton").addEventListener("click", printSummarySheet);
@@ -577,6 +579,7 @@ function renderSummary() {
       return `<tr>
         <td>${index + 1}</td>
         <td><input class="main-name-input" type="text" value="${escapeHtml(inspector.name)}" data-main-field="name" data-index="${index}" autocomplete="off"></td>
+        <td><input type="tel" value="${escapeHtml(inspector.phone)}" data-main-field="phone" data-index="${index}" autocomplete="off"></td>
         <td><input type="text" value="${escapeHtml(inspector.series)}" data-main-field="series" data-index="${index}" autocomplete="off"></td>
         <td><input type="number" min="0" value="${inspector.schoolsCount}" data-main-field="schoolsCount" data-index="${index}"></td>
         <td><button type="button" class="button main-remove-button" data-remove-inspector="${index}">سڕینەوە</button></td>
@@ -1061,6 +1064,7 @@ function updateMainPage(event, shouldRender = true) {
   if (!inspector) return;
   const field = target.dataset.mainField;
   if (field === "name") inspector.name = target.value;
+  if (field === "phone") inspector.phone = target.value.trim();
   if (field === "series") inspector.series = target.value;
   if (field === "schoolsCount") inspector.schoolsCount = numberOrZero(target.value);
   saveData();
@@ -1074,6 +1078,7 @@ function createInspector() {
   const inspector = {
     id,
     name: `سەرپەرشتیاری نوێ ${id}`,
+    phone: "",
     series: String(100 + index),
     schoolsCount: 0,
     schoolsInCharge: { supervision: 0, externalEval: 0, total: 0 },
@@ -2583,8 +2588,31 @@ function openNoteForm() {
     .map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
     .join("");
   sender.value = senderNames.includes(appData.global.head) ? appData.global.head : (senderNames[0] || "");
+  renderNotePhoneOptions();
+  syncNotePhoneToSender();
   document.getElementById("noteDialog").showModal();
   document.getElementById("noteRecipientInput").focus();
+}
+
+function renderNotePhoneOptions(selectedPhone = "") {
+  const phoneSelect = document.getElementById("notePhoneInput");
+  const phones = [...new Map(appData.inspectors
+    .map((inspector) => ({
+      name: String(inspector.name || "").trim(),
+      phone: String(inspector.phone || "").trim(),
+    }))
+    .filter((inspector) => inspector.phone)
+    .map((inspector) => [inspector.phone, inspector])).values()];
+  phoneSelect.innerHTML = `<option value=""></option>${phones
+    .map(({ name, phone }) => `<option value="${escapeHtml(phone)}">${escapeHtml(name ? `${phone} — ${name}` : phone)}</option>`)
+    .join("")}`;
+  phoneSelect.value = phones.some((inspector) => inspector.phone === selectedPhone) ? selectedPhone : "";
+}
+
+function syncNotePhoneToSender() {
+  const senderName = document.getElementById("noteSenderInput").value.trim();
+  const inspector = appData.inspectors.find((item) => String(item.name || "").trim() === senderName);
+  renderNotePhoneOptions(inspector ? String(inspector.phone || "").trim() : "");
 }
 
 function closeNoteForm() {

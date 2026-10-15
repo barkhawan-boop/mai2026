@@ -298,6 +298,10 @@ input[type="number"] {
   width: 245px;
 }
 
+.main-phone-col {
+  width: 210px;
+}
+
 .main-series-col {
   width: 165px;
 }
