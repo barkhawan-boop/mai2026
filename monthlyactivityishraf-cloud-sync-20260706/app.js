@@ -2610,9 +2610,16 @@ function renderNotePhoneOptions(selectedPhone = "") {
 }
 
 function syncNotePhoneToSender() {
-  const senderName = document.getElementById("noteSenderInput").value.trim();
+  const normalizeName = (value) => String(value || "")
+    .normalize("NFKC")
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[\u064B-\u065F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const senderName = normalizeName(document.getElementById("noteSenderInput").value);
   const inspector = appData.inspectors.find((item) => {
-    const inspectorName = String(item.name || "").trim();
+    const inspectorName = normalizeName(item.name);
     return inspectorName === senderName || inspectorName.startsWith(`${senderName} `) || senderName.startsWith(`${inspectorName} `);
   });
   renderNotePhoneOptions(inspector ? String(inspector.phone || "").trim() : "");
