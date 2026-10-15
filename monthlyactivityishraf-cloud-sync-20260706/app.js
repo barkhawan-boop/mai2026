@@ -2597,9 +2597,10 @@ function arabicIndicDigits(value) {
 
 function setWordParagraphText(paragraph, value) {
   const wordNs = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
-  const firstRun = Array.from(paragraph.children).find((child) => child.namespaceURI === wordNs && child.localName === "r");
-  const runProperties = firstRun ? Array.from(firstRun.children).find((child) => child.namespaceURI === wordNs && child.localName === "rPr") : null;
   const paragraphProperties = Array.from(paragraph.children).find((child) => child.namespaceURI === wordNs && child.localName === "pPr");
+  const firstRun = Array.from(paragraph.children).find((child) => child.namespaceURI === wordNs && child.localName === "r");
+  const runProperties = (firstRun && Array.from(firstRun.children).find((child) => child.namespaceURI === wordNs && child.localName === "rPr"))
+    || (paragraphProperties && Array.from(paragraphProperties.children).find((child) => child.namespaceURI === wordNs && child.localName === "rPr"));
   Array.from(paragraph.childNodes).forEach((child) => {
     if (child !== paragraphProperties) paragraph.removeChild(child);
   });
