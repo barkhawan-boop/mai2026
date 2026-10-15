@@ -506,7 +506,7 @@ function bindEvents() {
   document.getElementById("noteCancelButton").addEventListener("click", closeNoteForm);
   document.getElementById("noteCancelAction").addEventListener("click", closeNoteForm);
   document.getElementById("notePrintButton").addEventListener("click", printNoteForm);
-  document.getElementById("noteForm").addEventListener("submit", saveNoteDocument);
+  document.getElementById("noteForm").addEventListener("submit", (event) => event.preventDefault());
   document.getElementById("noteSenderInput").addEventListener("change", syncNotePhoneToSender);
   document.getElementById("excelButton").addEventListener("click", generateWorkbook);
   document.getElementById("printButton").addEventListener("click", printAllSheets);
