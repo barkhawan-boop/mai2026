@@ -2791,7 +2791,6 @@ function printNoteForm() {
     return;
   }
 
-  const printReady = new Promise((resolve) => printWindow.addEventListener("load", resolve, { once: true }));
   const printDocument = printWindow.document;
   printDocument.open();
   printDocument.write(`<!doctype html>
@@ -2799,13 +2798,20 @@ function printNoteForm() {
       <head>
         <meta charset="utf-8">
         <title>${escapeNoteHtml(pdfFilename)}</title>
-        <link rel="stylesheet" href="${new URL("styles.css?v=note-form-20261015l", window.location.href).href}">
       </head>
       <body><div class="print-root">${document.getElementById("printRoot").innerHTML}</div></body>
     </html>`);
   printDocument.close();
+  const stylesheet = printDocument.createElement("link");
+  stylesheet.rel = "stylesheet";
+  stylesheet.href = new URL("styles.css?v=note-form-20261015m", window.location.href).href;
+  const stylesheetReady = new Promise((resolve) => {
+    stylesheet.addEventListener("load", resolve, { once: true });
+    stylesheet.addEventListener("error", resolve, { once: true });
+  });
+  printDocument.head.append(stylesheet);
   printWindow.addEventListener("afterprint", () => printWindow.close(), { once: true });
-  printReady.then(async () => {
+  stylesheetReady.then(async () => {
     await printDocument.fonts.ready;
     printWindow.focus();
     printWindow.print();
